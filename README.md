@@ -155,13 +155,6 @@ venv/bin/pytest
 
 Der Browser-Test der Oberfläche (`tests/test_frontend.py`) braucht zusätzlich `pip install playwright` und einen Chromium-Browser, ohne beides wird er übersprungen. Pull Requests und Meldungen über [Issues](https://github.com/dominikramachers/ha-enhanced-notify/issues) sind willkommen.
 
-### Release erstellen
-
-1. `version` in `custom_components/doralab_notify/manifest.json` erhöhen (Betas mit Suffix, z. B. `0.3.0-beta.2`), Eintrag im [CHANGELOG](CHANGELOG.md) ergänzen, nach `main` mergen.
-2. GitHub → Actions → **Release** → *Run workflow* (Branch `main`), Tag eintragen, z. B. `v0.3.0-beta.2`. Der Workflow prüft Tag gegen `manifest.json`, legt Tag und Release an (Tags mit `-` als Vorabversion) und nimmt die Notizen aus dem CHANGELOG.
-
-HACS und Home Assistant erkennen das Update danach selbst.
-
 ## Lizenz
 
 [MIT](LICENSE)
