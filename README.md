@@ -30,7 +30,12 @@ Die Oberfläche (Glocke, Liste, Karten) liefert die Integration selbst aus. Es i
 
 ### Beta-Versionen
 
-Vorabversionen (`…-beta.N`) erscheinen in HACS nur, wenn du sie freischaltest: Integration in HACS öffnen → ⋮ → **Neu herunterladen** → *Beta-Versionen anzeigen* aktivieren. Danach zeigt Home Assistant neue Betas wie jedes andere Update unter Einstellungen → System → Updates an. Ohne diese Option bekommst du nur stabile Versionen.
+Vorabversionen (`…-beta.N`) erscheinen in HACS nur, wenn du sie freischaltest. In HACS 2.x gibt es dafür je Repository einen Schalter als Entität, der standardmäßig **deaktiviert** ist:
+
+1. Einstellungen → Geräte & Dienste → HACS → *Entitäten*, den deaktivierten Schalter **„DORALAB Benachrichtigungen Pre-release“** suchen, öffnen und *Aktivieren* (die HACS-Integration lädt danach neu).
+2. Den Schalter einschalten.
+
+Danach zeigt Home Assistant neue Betas wie jedes andere Update unter Einstellungen → System → Updates an. Ohne den Schalter bekommst du nur stabile Versionen. Hast du eine Beta von Hand installiert, ohne den Schalter einzuschalten, meldet HACS fälschlich ein „Update“ auf einen Commit-Stand; mit eingeschaltetem Schalter verschwindet das.
 
 ### Manuell
 

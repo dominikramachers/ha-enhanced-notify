@@ -38,7 +38,7 @@ jobs:
           case "$TAG" in
             *-*)
               flags="--prerelease"
-              printf '**Beta**: In HACS unter "Neu herunterladen" die Option "Beta-Versionen anzeigen" aktivieren, um diese Version zu erhalten.\n\n' | cat - notes.md > notes2.md && mv notes2.md notes.md
+              printf '**Beta**: In HACS den (standardmäßig deaktivierten) Schalter "<Name> Pre-release" aktivieren und einschalten, um Betas als Update zu erhalten (siehe README).\n\n' | cat - notes.md > notes2.md && mv notes2.md notes.md
               ;;
           esac
           gh release create "$TAG" --target "$GITHUB_SHA" --title "$TAG" --notes-file notes.md $flags
