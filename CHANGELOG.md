@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0-beta.2 (Beta)
+
+- **Geändert:** In der Push-Auswahl (Admin-Karte) erscheinen nur noch Personen mit registrierter Companion-App (Handy). Personen ohne Gerät, etwa reine Anmelde-Konten, werden nicht mehr gelistet. „Alle“ als Standard eines Typs meint ebenfalls nur Personen mit Handy; gespeicherte Auswahlen bleiben unverändert (nicht mehr auffindbare Personen sind einfach nicht wirksam).
+
 ## 0.3.0-beta.1 (Beta)
 
 - **Neu:** Die Integration liefert die Oberfläche (Glocke, Liste, Karten) selbst aus und lädt sie automatisch. Eine Dashboard-Ressource ist nicht mehr nötig; eine bereits eingetragene Kopie schadet nicht (das Skript lädt sich nur einmal).

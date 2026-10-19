@@ -14,6 +14,17 @@ def person_ids(hass: HomeAssistant) -> list[str]:
     return sorted(hass.states.async_entity_ids("person"))
 
 
+def persons_with_phone(hass: HomeAssistant) -> list[str]:
+    """Personen mit mindestens einem registrierten Companion-App-Gerät.
+
+    Nur sie können eine Push-Nachricht bekommen; Personen ohne Handy (z. B.
+    reine Anmelde-Konten) tauchen deshalb in der Auswahl nicht auf. Die
+    Prüfung läuft über die Geräteregistrierung und hängt nicht davon ab, ob der
+    Benachrichtigungsdienst schon geladen ist.
+    """
+    return [pid for pid in person_ids(hass) if person_services(hass, pid)]
+
+
 def person_services(hass: HomeAssistant, person_entity_id: str) -> list[str]:
     """Benachrichtigungsdienste (``mobile_app_*``) der Geräte einer Person.
 
@@ -49,9 +60,9 @@ def all_mobile_services(hass: HomeAssistant) -> list[str]:
 
 
 def recipients_view(hass: HomeAssistant, excluded: list[str]) -> list[dict[str, Any]]:
-    """Personen samt Handys für die Einstellungsübersicht."""
+    """Personen mit Handy für die Einstellungsübersicht (ohne Handy: nicht gelistet)."""
     result: list[dict[str, Any]] = []
-    for pid in person_ids(hass):
+    for pid in persons_with_phone(hass):
         state = hass.states.get(pid)
         services = [
             s

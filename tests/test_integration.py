@@ -194,6 +194,29 @@ async def test_set_type_recipients(hass: HomeAssistant):
         await hass.services.async_call(DOMAIN, "set_type", {"type": "gibtsnicht", "push_when": "away"}, blocking=True)
 
 
+async def test_persons_without_phone_are_not_listed(hass: HomeAssistant):
+    """Personen ohne Companion-App-Gerät (Anmelde-Konten) erscheinen nicht als Empfänger."""
+    _, manager = await _setup(hass)
+    _add_person(hass, "dominik", "Dominik", "Dominik iPhone")
+    _add_person(hass, "sina", "Sina", "iPhone von Sina")
+    hass.states.async_set("person.administrator", "unknown", {"friendly_name": "LocalAdmin", "device_trackers": []})
+    hass.states.async_set("person.adm01", "unknown", {"friendly_name": "adm01"})
+    # Tracker, der nicht zur Companion App gehört, zählt nicht
+    hass.states.async_set("person.gast", "home", {"friendly_name": "Gast", "device_trackers": ["device_tracker.router_gast"]})
+    await hass.async_block_till_done()
+
+    view = manager.snapshot()
+    assert [p["id"] for p in view["recipients"]] == ["person.dominik", "person.sina"]
+    # Standard „alle“ meint nur Personen mit Handy
+    assert manager.types_view()["paket_zugestellt"]["recipients_effective"] == ["person.dominik", "person.sina"]
+    # Gespeicherte Auswahl: nur Personen mit Handy bleiben wirksam
+    await hass.services.async_call(
+        DOMAIN, "set_type", {"type": "klingel", "recipients": ["person.dominik", "person.administrator"]}, blocking=True
+    )
+    assert manager.types_view()["klingel"]["recipients_effective"] == ["person.dominik"]
+    assert [p["id"] for p in manager.snapshot()["recipients"]] == ["person.dominik", "person.sina"]
+
+
 async def test_excluded_device_gets_no_push(hass: HomeAssistant):
     _, manager = await _setup(hass, {"excluded_notify_services": ["mobile_app_iphone_von_sina"]})
     sina_calls, _ = _add_person(hass, "sina", "Sina", "iPhone von Sina")
