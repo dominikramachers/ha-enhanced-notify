@@ -37,7 +37,7 @@ from .const import (
     STORAGE_VERSION,
     TAG_PERSISTENT_PREFIX,
 )
-from .recipients import person_ids, person_services, recipients_view
+from .recipients import person_ids, person_services, persons_with_phone, recipients_view
 from .translate import translate_persistent
 
 _LOGGER = logging.getLogger(__name__)
@@ -165,7 +165,8 @@ class NotificationManager:
         return defs
 
     def types_view(self) -> dict[str, dict[str, Any]]:
-        persons = person_ids(self.hass)
+        # Nur Personen mit Handy können einen Push bekommen
+        persons = persons_with_phone(self.hass)
         result: dict[str, dict[str, Any]] = {}
         for tid, d in self._type_defs().items():
             settings = self.type_settings.get(tid, {})
