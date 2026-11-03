@@ -15,6 +15,7 @@ const navigate = (path) => { history.pushState(null, '', path); window.dispatchE
 
 // ---------- Datenquelle (gemeinsam für alle Komponenten) ----------
 const N = (window.enhancedNotify = { snap: null, hass: null, started: false, retry: 0, ls: new Set(), bells: new Set(), filter: 'all' });
+window.doralabNotify = N; // alter Name (bis 0.3.x), von eigenen Dashboard-Skripten genutzt; entfällt in 2.0
 N.setHass = (h) => {
   if (!h) return;
   N.hass = h;
