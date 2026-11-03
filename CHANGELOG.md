@@ -1,6 +1,10 @@
 # Changelog
 
-## Unveröffentlicht
+## 1.0.2
+
+- Korrektur: Die Version in `manifest.json` stand bei Release `v1.0.1` noch auf 1.0.0, der Release-Check schlug deshalb fehl. Ab 1.0.2 passen Tag und `manifest.json` wieder zusammen. Inhaltlich entspricht 1.0.2 der Version 1.0.1.
+
+## 1.0.1
 
 - Das Beispiel-Dashboard für die Push-Einstellungen heißt jetzt **Push-Verwaltung** (vorher *Benachrichtigungen*). In der Seitenleiste stand sonst zweimal *Benachrichtigungen*: der Eintrag von Home Assistant und dieses Dashboard. Bestehende Dashboards behalten ihren Titel, bis er in den Dashboard-Einstellungen geändert wird.
 
