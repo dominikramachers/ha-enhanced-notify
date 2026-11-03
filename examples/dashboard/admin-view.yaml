@@ -6,4 +6,4 @@ views:
     path: push
     panel: true
     cards:
-      - type: custom:doralab-notify-admin
+      - type: custom:enhanced-notify-admin

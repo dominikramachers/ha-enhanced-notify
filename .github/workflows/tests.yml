@@ -27,4 +27,4 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - run: node --check custom_components/doralab_notify/frontend/doralab-notify.js
+      - run: node --check custom_components/enhanced_notify/frontend/enhanced-notify.js

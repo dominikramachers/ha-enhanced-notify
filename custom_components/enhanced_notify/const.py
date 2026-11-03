@@ -1,8 +1,12 @@
-"""Konstanten der DORALAB-Benachrichtigungszentrale."""
+"""Konstanten von Enhanced Notify."""
 
 from __future__ import annotations
 
-DOMAIN = "doralab_notify"
+DOMAIN = "enhanced_notify"
+
+# Bis 0.3.x hieß die Integration „DORALAB Benachrichtigungen“ (Domain doralab_notify).
+# Die Namen werden nur für den Umstieg gebraucht (siehe legacy.py), Entfernung in 2.0.
+LEGACY_DOMAIN = "doralab_notify"
 
 STORAGE_KEY = DOMAIN
 STORAGE_VERSION = 1
@@ -28,7 +32,8 @@ PRIORITY_NORMAL = "normal"
 PRIORITY_HIGH = "high"
 
 EVENT_CREATED = f"{DOMAIN}_created"
-ACTION_READ_PREFIX = "DORALAB_READ_"
+ACTION_READ_PREFIX = "ENHANCED_NOTIFY_READ_"
+LEGACY_ACTION_READ_PREFIX = "DORALAB_READ_"  # Buttons bereits zugestellter Push-Meldungen
 MOBILE_APP_ACTION_EVENT = "mobile_app_notification_action"
 
 SOURCE_PERSISTENT = "persistent_notification"

@@ -5,7 +5,7 @@ triggers:
     entity_id: binary_sensor.haustuer_klingel   # anpassen
     to: "on"
 actions:
-  - action: doralab_notify.send
+  - action: enhanced_notify.send
     data:
       type: klingel
       message: "Es hat an der Haustür geklingelt."

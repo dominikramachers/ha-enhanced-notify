@@ -19,6 +19,7 @@ from homeassistant.util import slugify
 from .catalog import CATALOG, CATEGORIES, DEFAULT_CATEGORY, DEFAULT_ICON
 from .const import (
     ACTION_READ_PREFIX,
+    LEGACY_ACTION_READ_PREFIX,
     CONF_EXCLUDED_SERVICES,
     CONF_MAX_ITEMS,
     CONF_PUSH_ICON,
@@ -532,8 +533,13 @@ class NotificationManager:
 
     async def async_handle_push_action(self, action: str | None) -> None:
         """Button „Gelesen“ in der Push-Meldung."""
-        if action and action.startswith(ACTION_READ_PREFIX):
-            await self.async_mark_read([action[len(ACTION_READ_PREFIX):]])
+        if not action:
+            return
+        # Der alte Präfix gilt für Push-Meldungen, die vor dem Umstieg zugestellt wurden
+        for prefix in (ACTION_READ_PREFIX, LEGACY_ACTION_READ_PREFIX):
+            if action.startswith(prefix):
+                await self.async_mark_read([action[len(prefix):]])
+                return
 
     # ------------------------------------------------------------------ HA-Meldungen
 

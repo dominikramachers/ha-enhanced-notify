@@ -1,4 +1,4 @@
-"""DORALAB Benachrichtigungszentrale.
+"""Enhanced Notify.
 
 Zentrale Meldungsliste mit Lesestatus, Push-Steuerung pro Meldungstyp und
 Person sowie Übernahme/Übersetzung der HA-eigenen Benachrichtigungen.
@@ -37,13 +37,14 @@ from .const import (
     PRIORITY_NORMAL,
     PUSH_MODES,
 )
+from .legacy import async_migrate_legacy, async_register_legacy_services
 from .manager import NotificationManager
 from .websocket_api import async_register_websocket_api
 
 _LOGGER = logging.getLogger(__name__)
 
-FRONTEND_FILE = Path(__file__).parent / "frontend" / "doralab-notify.js"
-FRONTEND_URL = f"/{DOMAIN}/doralab-notify.js"
+FRONTEND_FILE = Path(__file__).parent / "frontend" / "enhanced-notify.js"
+FRONTEND_URL = f"/{DOMAIN}/enhanced-notify.js"
 
 PLATFORMS = [Platform.SENSOR]
 
@@ -187,16 +188,23 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     await _async_register_frontend(hass)
 
-    hass.services.async_register(
-        DOMAIN, "send", handle_send, schema=SEND_SCHEMA, supports_response=SupportsResponse.OPTIONAL
-    )
-    hass.services.async_register(DOMAIN, "mark_read", handle_mark_read, schema=MARK_READ_SCHEMA)
-    hass.services.async_register(DOMAIN, "delete", handle_delete, schema=DELETE_SCHEMA)
-    hass.services.async_register(DOMAIN, "set_type", handle_set_type, schema=SET_TYPE_SCHEMA)
+    services = {
+        "send": (handle_send, SEND_SCHEMA, SupportsResponse.OPTIONAL),
+        "mark_read": (handle_mark_read, MARK_READ_SCHEMA, SupportsResponse.NONE),
+        "delete": (handle_delete, DELETE_SCHEMA, SupportsResponse.NONE),
+        "set_type": (handle_set_type, SET_TYPE_SCHEMA, SupportsResponse.NONE),
+    }
+    for name, (handler, schema, response) in services.items():
+        hass.services.async_register(DOMAIN, name, handler, schema=schema, supports_response=response)
+    # Alte Dienstnamen (doralab_notify.*) für den Umstieg, entfällt in 2.0
+    async_register_legacy_services(hass, services)
     return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    # Umstieg von „DORALAB Benachrichtigungen“ (doralab_notify): Daten und Sensor übernehmen
+    await async_migrate_legacy(hass, entry)
+
     manager = NotificationManager(hass, entry)
     await manager.async_load()
     hass.data[DOMAIN] = manager

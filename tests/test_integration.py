@@ -18,7 +18,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.setup import async_setup_component
 from homeassistant.util import dt as dt_util
 
-from custom_components.doralab_notify.const import DOMAIN, EVENT_CREATED, TAG_PERSISTENT_PREFIX
+from custom_components.enhanced_notify.const import DOMAIN, EVENT_CREATED, TAG_PERSISTENT_PREFIX
 
 
 def _sensor_state(hass: HomeAssistant):
@@ -209,7 +209,7 @@ async def test_push_defaults_and_away_mode(hass: HomeAssistant):
     assert data["tag"] == manager.items[0]["id"]
     assert data["url"] == "/kiosk-test/home"
     assert data["push"] == {"interruption-level": "time-sensitive"}
-    assert data["actions"][0]["action"].startswith("DORALAB_READ_")
+    assert data["actions"][0]["action"].startswith("ENHANCED_NOTIFY_READ_")
 
     # Paket in Zustellung: alle, immer
     await manager.async_send("paket_in_zustellung", "kommt heute")
@@ -235,12 +235,12 @@ async def test_push_has_no_icon_by_default(hass: HomeAssistant):
 
 
 async def test_push_uses_default_icon(hass: HomeAssistant):
-    _, manager = await _setup(hass, {"push_icon": "/local/doralab.png"})
-    assert (await _push_data(hass, manager))["icon_url"] == "/local/doralab.png"
+    _, manager = await _setup(hass, {"push_icon": "/local/logo.png"})
+    assert (await _push_data(hass, manager))["icon_url"] == "/local/logo.png"
 
 
 async def test_push_type_image_wins_unless_forced(hass: HomeAssistant):
-    _, manager = await _setup(hass, {"push_icon": "/local/doralab.png"})
+    _, manager = await _setup(hass, {"push_icon": "/local/logo.png"})
     manager.custom_types["zabbix_problem"] = {
         "name": "Zabbix: Problem", "category": "system", "icon": "/local/zabbix.png", "auto": True,
     }
@@ -248,9 +248,9 @@ async def test_push_type_image_wins_unless_forced(hass: HomeAssistant):
     assert (await _push_data(hass, manager, "zabbix_problem"))["icon_url"] == "/local/zabbix.png"
 
     manager.entry = MockConfigEntry(
-        domain=DOMAIN, data={}, options={"push_icon": "/local/doralab.png", "push_icon_force": True}
+        domain=DOMAIN, data={}, options={"push_icon": "/local/logo.png", "push_icon_force": True}
     )
-    assert (await _push_data(hass, manager, "zabbix_problem"))["icon_url"] == "/local/doralab.png"
+    assert (await _push_data(hass, manager, "zabbix_problem"))["icon_url"] == "/local/logo.png"
 
 
 async def test_push_mdi_type_icon_is_not_sent(hass: HomeAssistant):
@@ -341,7 +341,7 @@ async def test_clear_push_on_read_and_action_button(hass: HomeAssistant):
     assert len(calls) == 1
 
     # Button „Gelesen“ in der Push-Meldung
-    hass.bus.async_fire("mobile_app_notification_action", {"action": f"DORALAB_READ_{item_id}"})
+    hass.bus.async_fire("mobile_app_notification_action", {"action": f"ENHANCED_NOTIFY_READ_{item_id}"})
     await hass.async_block_till_done()
     assert manager.unread == 0
     assert len(calls) == 2
@@ -423,7 +423,7 @@ async def test_websocket_flow(hass: HomeAssistant, hass_ws_client):
     _add_person(hass, "dominik", "Dominik", "Dominik iPhone")
     client = await hass_ws_client(hass)
 
-    await client.send_json({"id": 1, "type": "doralab_notify/subscribe"})
+    await client.send_json({"id": 1, "type": "enhanced_notify/subscribe"})
     result, events = await _collect(client, 1)
     assert result["success"] is True
     snap = events[0] if events else (await client.receive_json())["event"]
@@ -435,24 +435,24 @@ async def test_websocket_flow(hass: HomeAssistant, hass_ws_client):
     assert update["unread"] == 1
     item_id = update["items"][0]["id"]
 
-    await client.send_json({"id": 2, "type": "doralab_notify/mark_read", "ids": [item_id]})
+    await client.send_json({"id": 2, "type": "enhanced_notify/mark_read", "ids": [item_id]})
     result, events = await _collect(client, 2)
     assert result["result"] == {"changed": 1}
     assert events[-1]["unread"] == 0
 
     await client.send_json(
-        {"id": 3, "type": "doralab_notify/set_type", "type_id": "klingel", "recipients": ["person.dominik"], "push_when": "always"}
+        {"id": 3, "type": "enhanced_notify/set_type", "type_id": "klingel", "recipients": ["person.dominik"], "push_when": "always"}
     )
     result, events = await _collect(client, 3)
     assert result["success"] is True
     assert events[-1]["types"]["klingel"]["recipients"] == ["person.dominik"]
     assert events[-1]["types"]["klingel"]["push_when"] == "always"
 
-    await client.send_json({"id": 4, "type": "doralab_notify/set_type", "type_id": "klingel", "recipients": ["person.x"]})
+    await client.send_json({"id": 4, "type": "enhanced_notify/set_type", "type_id": "klingel", "recipients": ["person.x"]})
     result, _ = await _collect(client, 4)
     assert result["success"] is False
 
-    await client.send_json({"id": 5, "type": "doralab_notify/delete", "ids": [item_id]})
+    await client.send_json({"id": 5, "type": "enhanced_notify/delete", "ids": [item_id]})
     result, _ = await _collect(client, 5)
     assert result["result"] == {"removed": 1}
 
@@ -483,11 +483,11 @@ async def test_options_flow_push_icon(hass: HomeAssistant):
     )
     assert bad["type"] == "form" and bad["errors"] == {"push_icon": "invalid_push_icon"}
     good = await hass.config_entries.options.async_configure(
-        bad["flow_id"], {**base, "push_icon": "  /local/doralab.png "}
+        bad["flow_id"], {**base, "push_icon": "  /local/logo.png "}
     )
     assert good["type"] == "create_entry"
     await hass.async_block_till_done()
-    assert hass.data[DOMAIN].entry.options["push_icon"] == "/local/doralab.png"
+    assert hass.data[DOMAIN].entry.options["push_icon"] == "/local/logo.png"
     assert hass.data[DOMAIN].entry.options["push_icon_force"] is True
 
 
@@ -628,7 +628,7 @@ async def test_frontend_is_served_and_registered(hass: HomeAssistant):
     from homeassistant.components.http import HomeAssistantHTTP
     from homeassistant.components.frontend import DATA_EXTRA_MODULE_URL, UrlManager
 
-    from custom_components.doralab_notify import FRONTEND_FILE, FRONTEND_URL
+    from custom_components.enhanced_notify import FRONTEND_FILE, FRONTEND_URL
 
     register = AsyncMock()
     hass.config.components.add("frontend")

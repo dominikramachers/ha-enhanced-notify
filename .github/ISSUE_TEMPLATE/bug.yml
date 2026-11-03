@@ -19,5 +19,5 @@ body:
       required: true
   - type: textarea
     attributes:
-      label: Protokoll (Einstellungen → System → Protokolle, Filter doralab_notify)
+      label: Protokoll (Einstellungen → System → Protokolle, Filter enhanced_notify)
       render: text

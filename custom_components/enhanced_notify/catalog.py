@@ -1,7 +1,7 @@
 """Vorgegebener Katalog der Benachrichtigungstypen.
 
 Jeder Typ erscheint in der Einstellungsübersicht, auch wenn er noch nie
-ausgelöst wurde. Unbekannte Typen, die per ``doralab_notify.send`` ankommen,
+ausgelöst wurde. Unbekannte Typen, die per ``enhanced_notify.send`` ankommen,
 werden beim ersten Auslösen automatisch ergänzt (Kategorie "system").
 
 Felder je Typ:
