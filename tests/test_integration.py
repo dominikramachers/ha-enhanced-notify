@@ -570,6 +570,54 @@ async def test_deleted_or_read_message_does_not_return(hass: HomeAssistant):
     assert back["deduplicated"] is False and [i["message"] for i in manager.items] == ["Unterwegs"]
 
 
+async def test_title_change_alone_does_not_renotify(hass: HomeAssistant):
+    """Wechselt nur der Titel (z. B. Artikelname bei Sammelbestellungen), kommt nichts Neues."""
+    _, manager = await _setup(hass)
+    msg = "Zugestellt. Heute zugestellt. Die Sendung wurde einem Hausbewohner übergeben."
+    r = await manager.async_send("paket_zugestellt", msg, title="Amazon: Tapo Lampe", tag="paket:o_2", push=False)
+    assert r["deduplicated"] is False
+    # Titel springt, Meldung ist ungelesen: keine Aktualisierung, kein Zähler
+    again = await manager.async_send("paket_zugestellt", msg, title="Amazon: adidas", tag="paket:o_2", push=False)
+    assert again["deduplicated"] is True and again["id"] == r["id"]
+    assert manager.items[0]["count"] == 1 and manager.items[0]["title"] == "Amazon: Tapo Lampe"
+    # gelesen: bleibt gelesen
+    await manager.async_mark_read([r["id"]])
+    again = await manager.async_send("paket_zugestellt", msg, title="Amazon: Katzenbrunnen", tag="paket:o_2", push=False)
+    assert again["deduplicated"] is True and manager.items[0]["read"] is True
+    # gelöscht: kommt nicht zurück
+    await manager.async_delete([r["id"]])
+    again = await manager.async_send("paket_zugestellt", msg, title="Amazon: adidas", tag="paket:o_2", push=False)
+    assert again["deduplicated"] is True and manager.items == []
+    # anderer Text meldet weiterhin
+    new = await manager.async_send("paket_zugestellt", "Anderer Text", title="Amazon: adidas", tag="paket:o_2", push=False)
+    assert new["deduplicated"] is False
+
+
+async def test_title_change_alone_survives_restart(hass: HomeAssistant):
+    entry, manager = await _setup(hass)
+    msg = "Zugestellt."
+    r = await manager.async_send("paket_zugestellt", msg, title="Amazon: A", tag="paket:x", push=False)
+    await manager.async_delete([r["id"]])
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    manager = hass.data[DOMAIN]
+    again = await manager.async_send("paket_zugestellt", msg, title="Amazon: B", tag="paket:x", push=False)
+    assert again["deduplicated"] is True and manager.items == []
+
+
+async def test_title_change_alone_bootstraps_from_old_store(hass: HomeAssistant):
+    """Speicher aus Version <= 1.0.2 (ohne Text-Merker): bestehende Meldung wird übernommen."""
+    entry, manager = await _setup(hass)
+    await manager.async_send("paket_zugestellt", "Zugestellt.", title="Amazon: A", tag="paket:y", push=False)
+    manager.announced_msg.clear()
+    await manager.async_flush()
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    manager = hass.data[DOMAIN]
+    again = await manager.async_send("paket_zugestellt", "Zugestellt.", title="Amazon: B", tag="paket:y", push=False)
+    assert again["deduplicated"] is True and len(manager.items) == 1
+
+
 async def test_untagged_and_persistent_still_repeat(hass: HomeAssistant):
     _, manager = await _setup(hass)
     await manager.async_send("klingel", "Es klingelt", push=False)
