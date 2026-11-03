@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+import re
 from typing import Any
 
 import voluptuous as vol
@@ -48,6 +49,28 @@ PLATFORMS = [Platform.SENSOR]
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
+# Icon eines Typs: Icon-Name (mdi:cog), Pfad auf diese HA-Instanz (/local/logo.png),
+# Webadresse (https://...) oder eingebettetes Bild (data:image/png;base64,...).
+_ICON_REF = re.compile(
+    r"^(?:[a-z][a-z0-9_-]*:[a-z0-9_.-]+"
+    r"|/(?!/)\S*"
+    r"|https?://\S+"
+    r"|data:image/(?:png|jpeg|gif|webp|svg\+xml);base64,[A-Za-z0-9+/=]+)$"
+)
+MAX_ICON_LENGTH = 20000
+
+
+def _icon_ref(value: Any) -> str:
+    """Icon-Angabe prüfen; leer bedeutet \"Icon der Kategorie\"."""
+    text = cv.string(value).strip()
+    if text and (len(text) > MAX_ICON_LENGTH or not _ICON_REF.match(text)):
+        raise vol.Invalid(
+            "Ungültiges Icon: erlaubt sind mdi:name, ein Pfad wie /local/logo.png, "
+            "eine http(s)-Adresse oder data:image/...;base64,..."
+        )
+    return text
+
+
 SEND_SCHEMA = vol.Schema(
     {
         vol.Required("type"): cv.string,
@@ -60,6 +83,7 @@ SEND_SCHEMA = vol.Schema(
         vol.Optional("priority"): vol.In((PRIORITY_NORMAL, PRIORITY_HIGH)),
         vol.Optional("category"): cv.string,
         vol.Optional("type_name"): cv.string,
+        vol.Optional("type_icon"): _icon_ref,
         vol.Optional("data"): dict,
         vol.Optional("once", default=False): cv.boolean,
         vol.Optional("baseline", default=False): cv.boolean,
@@ -136,6 +160,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             priority=d.get("priority"),
             category=d.get("category"),
             type_name=d.get("type_name"),
+            type_icon=d.get("type_icon"),
             data=d.get("data"),
             once=d["once"],
             baseline=d["baseline"],

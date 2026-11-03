@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import timedelta
 
 import pytest
+import voluptuous as vol
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
     async_mock_service,
@@ -134,6 +135,64 @@ async def test_unknown_type_is_registered(hass: HomeAssistant):
     view = manager.types_view()["garage_offen"]
     assert view["auto"] is True and view["name"] == "Garage offen"
     assert view["recipients_effective"] == []  # automatisch angelegte Typen pushen nicht
+
+
+async def test_type_icon_is_applied_to_auto_types(hass: HomeAssistant):
+    _, manager = await _setup(hass)
+    await manager.async_send(
+        "zabbix_problem", "CPU hoch", category="system", type_name="Zabbix: Problem",
+        type_icon="/local/zabbix.png", push=False,
+    )
+    assert manager.types_view()["zabbix_problem"]["icon"] == "/local/zabbix.png"
+
+    # Ein geändertes Icon der Quelle wird für den schon angelegten Typ übernommen
+    await manager.async_send("zabbix_problem", "Disk voll", type_icon="mdi:server", push=False)
+    assert manager.types_view()["zabbix_problem"]["icon"] == "mdi:server"
+
+    # Ohne type_icon bleibt es, leer setzt auf das Icon der Kategorie zurück
+    await manager.async_send("zabbix_problem", "RAM knapp", push=False)
+    assert manager.types_view()["zabbix_problem"]["icon"] == "mdi:server"
+    await manager.async_send("zabbix_problem", "Swap voll", type_icon="", push=False)
+    assert manager.types_view()["zabbix_problem"]["icon"] == "mdi:cog-outline"
+
+
+async def test_type_icon_does_not_touch_catalog_types(hass: HomeAssistant):
+    _, manager = await _setup(hass)
+    before = manager.types_view()["klingel"]["icon"]
+    await manager.async_send("klingel", "ding", type_icon="/local/x.png", push=False)
+    assert manager.types_view()["klingel"]["icon"] == before
+
+
+async def test_type_icon_survives_reload(hass: HomeAssistant):
+    entry, manager = await _setup(hass)
+    await manager.async_send("zabbix_problem", "x", type_icon="/local/zabbix.png", push=False)
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert hass.data[DOMAIN].types_view()["zabbix_problem"]["icon"] == "/local/zabbix.png"
+
+
+@pytest.mark.parametrize(
+    "icon",
+    ["javascript:alert(1)", "//evil.example/x.png", "data:text/html;base64,AAAA", "<img>", "not an icon", "x" * 21000],
+)
+async def test_type_icon_rejects_unsafe_values(hass: HomeAssistant, icon):
+    await _setup(hass)
+    with pytest.raises(vol.Invalid):
+        await hass.services.async_call(
+            DOMAIN, "send", {"type": "zabbix_problem", "message": "x", "type_icon": icon}, blocking=True
+        )
+
+
+@pytest.mark.parametrize(
+    "icon",
+    ["mdi:server", "/local/zabbix.png", "https://example.org/z.png", "data:image/png;base64,iVBORw0KGgo=", ""],
+)
+async def test_type_icon_accepts_valid_values(hass: HomeAssistant, icon):
+    _, manager = await _setup(hass)
+    await hass.services.async_call(
+        DOMAIN, "send", {"type": "zabbix_problem", "message": "x", "type_icon": icon, "push": False}, blocking=True
+    )
+    assert "zabbix_problem" in manager.types_view()
 
 
 async def test_push_defaults_and_away_mode(hass: HomeAssistant):

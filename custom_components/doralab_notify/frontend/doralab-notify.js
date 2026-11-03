@@ -5,6 +5,9 @@
 if (window.__doralabNotifyLoaded) return;
 window.__doralabNotifyLoaded = 1;
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+// Icon-Angabe: Bild (Pfad auf diese HA-Instanz, http(s)-Adresse, data:image) oder Icon-Name (mdi:...)
+const isImg = (s) => typeof s === 'string' && (/^\/(?!\/)\S/.test(s) || /^https?:\/\/\S/i.test(s) || /^data:image\/(png|jpe?g|gif|webp|svg\+xml);base64,/i.test(s));
+const iconHtml = (s) => (isImg(s) ? `<img src="${esc(s)}" alt="" draggable="false">` : `<ha-icon icon="${esc(s)}"></ha-icon>`);
 const def = (n, c) => { if (!customElements.get(n)) customElements.define(n, c); };
 window.customCards = window.customCards || [];
 const reg = (t, n, d) => { if (!window.customCards.some((c) => c.type === t)) window.customCards.push({ type: t, name: n, description: d }); };
@@ -197,7 +200,8 @@ button{font:inherit;color:inherit;border:0;padding:0;margin:0;background:none;cu
 .it{position:relative;display:flex;align-items:center;gap:12px;padding:10px 6px 10px 12px;margin-bottom:8px;border-radius:18px;background:var(--secondary-background-color,rgba(127,127,127,.1));cursor:pointer;transition:background .2s}
 .it.un{background:var(--dl-blue-soft,rgba(96,165,250,.16))}
 .it.un::before{content:'';position:absolute;left:5px;top:50%;width:6px;height:6px;margin-top:-3px;border-radius:50%;background:var(--dl-blue,#60A5FA)}
-.ic{flex:none;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--c) 22%,transparent);color:var(--c);--mdc-icon-size:23px;margin-left:4px}
+.ic{flex:none;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--c) 22%,transparent);color:var(--c);--mdc-icon-size:23px;margin-left:4px;overflow:hidden}
+.ic img{width:100%;height:100%;object-fit:cover;display:block}
 .tx{flex:1;min-width:0}
 .t1{display:flex;align-items:baseline;gap:8px}
 .t1 b{font-size:15px;font-weight:700;line-height:1.25;min-width:0;overflow:hidden;text-overflow:ellipsis}
@@ -262,7 +266,7 @@ class DoralabNotifyPanel extends HTMLElement {
     shown.forEach((i) => {
       const g = groupOf(i.updated); if (g !== last) { last = g; html += `<div class="gh">${g}</div>`; }
       const c = cat(i.category), icon = i.icon || (types[i.type] && types[i.type].icon) || c.icon;
-      html += `<div class="it${i.read ? '' : ' un'}" data-id="${esc(i.id)}" data-l="${esc(i.link || '')}" data-r="${i.read ? 1 : 0}"><span class="ic" style="--c:${esc(c.color)}"><ha-icon icon="${esc(icon)}"></ha-icon></span><div class="tx"><div class="t1"><b>${esc(i.title)}</b>${i.count > 1 ? `<i class="cn">×${i.count}</i>` : ''}</div><div class="t2">${esc(i.message)}</div><div class="t3">${esc(c.name)} · ${esc(when(i.updated))}</div></div><div class="ac"><button class="ib" data-a="toggle" aria-label="${i.read ? 'Als ungelesen markieren' : 'Als gelesen markieren'}"><ha-icon icon="${i.read ? 'mdi:email-outline' : 'mdi:email-open-outline'}"></ha-icon></button><button class="ib" data-a="del" aria-label="Löschen"><ha-icon icon="mdi:trash-can-outline"></ha-icon></button></div></div>`;
+      html += `<div class="it${i.read ? '' : ' un'}" data-id="${esc(i.id)}" data-l="${esc(i.link || '')}" data-r="${i.read ? 1 : 0}"><span class="ic" style="--c:${esc(c.color)}">${iconHtml(icon)}</span><div class="tx"><div class="t1"><b>${esc(i.title)}</b>${i.count > 1 ? `<i class="cn">×${i.count}</i>` : ''}</div><div class="t2">${esc(i.message)}</div><div class="t3">${esc(c.name)} · ${esc(when(i.updated))}</div></div><div class="ac"><button class="ib" data-a="toggle" aria-label="${i.read ? 'Als ungelesen markieren' : 'Als gelesen markieren'}"><ha-icon icon="${i.read ? 'mdi:email-outline' : 'mdi:email-open-outline'}"></ha-icon></button><button class="ib" data-a="del" aria-label="Löschen"><ha-icon icon="mdi:trash-can-outline"></ha-icon></button></div></div>`;
     });
     if (!html) html = `<div class="em"><ha-icon icon="mdi:bell-sleep-outline"></ha-icon><b>Alles ruhig</b><span>${N.snap ? (N.filter === 'unread' ? 'Alles gelesen' : 'Keine Benachrichtigungen') : 'Verbindung zur Benachrichtigungszentrale wird aufgebaut …'}</span></div>`;
     const ls = q('.ls'); if (ls.dataset.h === html) return;
@@ -315,7 +319,8 @@ h1{margin:6px 0 4px;font-size:26px;font-weight:800;letter-spacing:-.01em}
 .ch small{font-weight:600;letter-spacing:0;text-transform:none}
 .ty{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;padding:14px;margin-bottom:10px;border-radius:20px;background:var(--card-background-color,#fff);box-shadow:var(--dl-shadow,0 3px 12px rgba(17,24,39,.08))}
 .l{display:flex;align-items:center;gap:12px;flex:1 1 280px;min-width:0}
-.ic{flex:none;width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--c) 20%,transparent);color:var(--c);--mdc-icon-size:24px}
+.ic{flex:none;width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--c) 20%,transparent);color:var(--c);--mdc-icon-size:24px;overflow:hidden}
+.ic img{width:100%;height:100%;object-fit:cover;display:block}
 .l b{display:block;font-size:15px}
 .l small{display:block;margin-top:2px;font-size:12.5px;line-height:1.35;color:var(--secondary-text-color,#667085)}
 .l small.m{font-size:11.5px;opacity:.85}
@@ -379,7 +384,7 @@ class DoralabNotifyAdmin extends HTMLElement {
         const who = persons.map((p) => `<button class="pw${eff.has(p.id) ? ' on' : ''}" data-a="p" data-t="${esc(t.id)}" data-p="${esc(p.id)}" aria-pressed="${eff.has(p.id)}"><span class="av">${p.picture ? `<img src="${esc(p.picture)}" alt="">` : esc((p.name || '?').charAt(0).toUpperCase())}</span>${esc(p.name)}</button>`).join('');
         const none = eff.size === 0;
         const meta = t.count ? `Zuletzt ${esc(when(t.last))} · ${t.count}× ausgelöst` : 'Noch nie ausgelöst';
-        return `<div class="ty" style="--c:${esc(c.color)}"><div class="l"><span class="ic"><ha-icon icon="${esc(t.icon)}"></ha-icon></span><div><b>${esc(t.name)}${t.auto ? '<span class="tg">AUTOMATISCH ERKANNT</span>' : ''}</b>${t.description ? `<small>${esc(t.description)}</small>` : ''}<small class="m">${meta}</small></div></div><div class="r"><div class="who">${who}</div>${none ? '<span class="nop">Kein Push</span>' : ''}<div class="sg${none ? ' off' : ''}"><button class="${t.push_when === 'always' ? 'on' : ''}" data-a="w" data-t="${esc(t.id)}" data-w="always">Immer</button><button class="${t.push_when === 'away' ? 'on' : ''}" data-a="w" data-t="${esc(t.id)}" data-w="away">Nur unterwegs</button></div><div class="xb"><button data-a="test" data-t="${esc(t.id)}" title="Testmeldung senden"><ha-icon icon="mdi:send-outline"></ha-icon>Test</button>${t.customized ? `<button data-a="reset" data-t="${esc(t.id)}" title="Auf Standard zurücksetzen"><ha-icon icon="mdi:restore"></ha-icon>Standard</button>` : ''}</div></div></div>`;
+        return `<div class="ty" style="--c:${esc(c.color)}"><div class="l"><span class="ic">${iconHtml(t.icon)}</span><div><b>${esc(t.name)}${t.auto ? '<span class="tg">AUTOMATISCH ERKANNT</span>' : ''}</b>${t.description ? `<small>${esc(t.description)}</small>` : ''}<small class="m">${meta}</small></div></div><div class="r"><div class="who">${who}</div>${none ? '<span class="nop">Kein Push</span>' : ''}<div class="sg${none ? ' off' : ''}"><button class="${t.push_when === 'always' ? 'on' : ''}" data-a="w" data-t="${esc(t.id)}" data-w="always">Immer</button><button class="${t.push_when === 'away' ? 'on' : ''}" data-a="w" data-t="${esc(t.id)}" data-w="away">Nur unterwegs</button></div><div class="xb"><button data-a="test" data-t="${esc(t.id)}" title="Testmeldung senden"><ha-icon icon="mdi:send-outline"></ha-icon>Test</button>${t.customized ? `<button data-a="reset" data-t="${esc(t.id)}" title="Auf Standard zurücksetzen"><ha-icon icon="mdi:restore"></ha-icon>Standard</button>` : ''}</div></div></div>`;
       }).join('');
       return `<section class="cat" style="--c:${esc(c.color)}"><div class="ch"><ha-icon icon="${esc(c.icon)}"></ha-icon>${esc(c.name)}<small>${by[k].length} ${by[k].length === 1 ? 'Typ' : 'Typen'}</small></div>${rows}</section>`;
     }).join('');

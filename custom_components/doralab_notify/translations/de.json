@@ -77,6 +77,10 @@
           "name": "Typ-Name",
           "description": "Nur beim automatischen Anlegen eines neuen Typs."
         },
+        "type_icon": {
+          "name": "Typ-Icon",
+          "description": "Icon des Typs: mdi:name, ein Pfad wie /local/logo.png, eine Webadresse oder data:image/…. Nur für automatisch angelegte Typen, leer = Icon der Kategorie."
+        },
         "once": {
           "name": "Nur einmal",
           "description": "Der Tag wird nur ein einziges Mal gemeldet, auch wenn die Meldung gelöscht wurde (z. B. neue Kalendertermine)."

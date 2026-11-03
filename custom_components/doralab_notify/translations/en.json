@@ -77,6 +77,10 @@
           "name": "Type name",
           "description": "Only used when a new type is created automatically."
         },
+        "type_icon": {
+          "name": "Type icon",
+          "description": "Icon of the type: mdi:name, a path like /local/logo.png, a web address or data:image/…. Only for automatically created types, empty = category icon."
+        },
         "once": {
           "name": "Only once",
           "description": "The tag is reported only a single time, even after the notification was deleted (e.g. new calendar events)."
