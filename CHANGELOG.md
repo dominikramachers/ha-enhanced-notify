@@ -1,5 +1,9 @@
 # Changelog
 
+## Unveröffentlicht
+
+- Das Beispiel-Dashboard für die Push-Einstellungen heißt jetzt **Push-Verwaltung** (vorher *Benachrichtigungen*). In der Seitenleiste stand sonst zweimal *Benachrichtigungen*: der Eintrag von Home Assistant und dieses Dashboard. Bestehende Dashboards behalten ihren Titel, bis er in den Dashboard-Einstellungen geändert wird.
+
 ## 1.0.0
 
 Erste stabile Version. Sie fasst die Vorabversionen bis `1.0.0-rc.1` zusammen.

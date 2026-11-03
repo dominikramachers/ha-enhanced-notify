@@ -1,6 +1,7 @@
 # Eigene Dashboard-Ansicht für Admins: Push-Empfänger je Meldungstyp und Person einstellen.
 # Dashboard anlegen -> Rohkonfigurations-Editor -> einfügen. Nur für Administratoren sichtbar machen.
-title: Benachrichtigungen
+# Der Titel erscheint in der Seitenleiste. "Push-Verwaltung" unterscheidet sich vom Eintrag "Benachrichtigungen" von Home Assistant.
+title: Push-Verwaltung
 views:
   - title: Push-Einstellungen
     path: push

@@ -65,7 +65,7 @@ Bis Version 2.0 funktionieren die **alten Dienstnamen und Kartennamen weiter**, 
    type: custom:enhanced-notify-bell
    ```
 
-2. **Admin-Dashboard** für die Push-Einstellungen: ein Dashboard (nur für Administratoren) mit der Karte `custom:enhanced-notify-admin`, siehe [`examples/dashboard/admin-view.yaml`](examples/dashboard/admin-view.yaml). Dort wählst du je Meldungstyp die Personen und den Modus *Immer* oder *Nur unterwegs*, kannst eine Testmeldung senden oder auf den Standard zurücksetzen.
+2. **Admin-Dashboard** für die Push-Einstellungen: ein Dashboard (nur für Administratoren, Titel **Push-Verwaltung**, damit es sich vom Eintrag *Benachrichtigungen* von Home Assistant unterscheidet) mit der Karte `custom:enhanced-notify-admin`, siehe [`examples/dashboard/admin-view.yaml`](examples/dashboard/admin-view.yaml). Dort wählst du je Meldungstyp die Personen und den Modus *Immer* oder *Nur unterwegs*, kannst eine Testmeldung senden oder auf den Standard zurücksetzen.
 3. **Meldungen auslösen**: aus deinen Automationen mit `enhanced_notify.send`. Fertige Vorlagen liegen in [`examples/automations/`](examples/automations).
 
 Optionen der Integration (Einstellungen → Geräte & Dienste → Konfigurieren): Aufbewahrung gelesener/aller Meldungen, maximale Anzahl, HA-Meldungen übernehmen und übersetzen, Geräte ohne Push (z. B. ein iPad).
