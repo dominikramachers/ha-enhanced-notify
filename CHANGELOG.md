@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.0
+
+Erste stabile Version. Sie fasst die Vorabversionen bis `1.0.0-rc.1` zusammen.
+
+- **Umbenennung:** *DORALAB Benachrichtigungen* (`doralab_notify`) heißt jetzt **Enhanced Notify** (`enhanced_notify`): Aktionen `enhanced_notify.send|mark_read|delete|set_type`, Ereignis `enhanced_notify_created`, Karten `custom:enhanced-notify-bell` und `custom:enhanced-notify-admin`.
+- **Umstieg von 0.3.x:** Beim Einrichten von *Enhanced Notify* werden Meldungen, Typ-Einstellungen, Optionen und der Zähler-Sensor (Entity-ID und Verlauf) automatisch übernommen. Schritte: siehe README, Abschnitt *Umstieg*.
+- Die alten Aktionen `doralab_notify.*` und Kartennamen funktionieren bis 2.0 weiter (Warnung im Protokoll und Hinweis unter *Reparaturen*).
+- Enthalten seit 0.3: Oberfläche (Glocke, Liste, Admin-Karte) wird von der Integration selbst ausgeliefert, Standard-Icon für Push-Meldungen, Push nur an Personen mit Handy, `once`/`baseline` und Duplikat-Erkennung über `tag`.
+
 ## 1.0.0-rc.1 (Release Candidate)
 
 **Umbenennung:** Aus *DORALAB Benachrichtigungen* (`doralab_notify`) wird **Enhanced Notify** (`enhanced_notify`). Das Repository heißt weiterhin `ha-enhanced-notify`.
