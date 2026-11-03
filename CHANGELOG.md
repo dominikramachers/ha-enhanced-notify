@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0-beta.4 (Beta)
+
+- **Neu:** Option *Standard-Icon für Push-Meldungen* (Pfad oder Adresse eines Bildes). Die Meldung trägt es als `icon_url`, sodass es auf dem Handy statt des Standardsymbols erscheint. Hat ein Typ ein eigenes Bild (`type_icon`), gilt dieses; der Schalter *Standard-Icon auch bei Typen mit eigenem Bild verwenden* erzwingt das Standard-Icon für alle.
+- Abwärtskompatibel: ohne die Option ändert sich der Push nicht.
+
 ## 0.3.0-beta.3 (Beta)
 
 - **Neu:** `doralab_notify.send` kennt `type_icon`: Icon des Typs als Icon-Name, Pfad (`/local/…`), Webadresse oder eingebettetes Bild. Gilt für automatisch angelegte Typen und folgt der Quelle bei jedem Aufruf (leer = Icon der Kategorie).

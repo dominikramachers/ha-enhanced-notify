@@ -54,6 +54,15 @@ Den Ordner `custom_components/doralab_notify` in dein `config/custom_components/
 
 Optionen der Integration (Einstellungen → Geräte & Dienste → Konfigurieren): Aufbewahrung gelesener/aller Meldungen, maximale Anzahl, HA-Meldungen übernehmen und übersetzen, Geräte ohne Push (z. B. ein iPad).
 
+#### Icon in der Push-Meldung
+
+Unter *Konfigurieren* kannst du ein **Standard-Icon für Push-Meldungen** eintragen: ein Pfad wie `/local/logo.png` (Datei in `config/www/`) oder eine `http(s)`-Adresse. Es wird als `icon_url` mitgeschickt und ersetzt in der Meldung das Standardsymbol. Leer lässt alles wie bisher.
+
+- Hat ein Typ ein eigenes Bild (`type_icon`, z. B. das Zabbix-Logo), nimmt der Push dieses. Der Schalter **Standard-Icon auch bei Typen mit eigenem Bild verwenden** erzwingt stattdessen überall das Standard-Icon.
+- Icon-Namen (`mdi:…`) werden nicht gepusht, nur Bilder.
+- Das Handy lädt das Bild selbst, es muss die Adresse von Home Assistant also auch unterwegs erreichen. Pfade unter `/local/` brauchen keine Anmeldung.
+- Wirkung: Auf **Android** erscheint das Bild als großes Icon. Auf **iOS** zeigt die Companion-App die Meldung als Kommunikationsbenachrichtigung mit rundem Absender-Bild, der Titel dient als Absendername. Text, Titel, Link und Buttons bleiben unverändert. Ältere Versionen der Companion-App ignorieren `icon_url` auf iOS.
+
 ## Meldung senden
 
 ```yaml

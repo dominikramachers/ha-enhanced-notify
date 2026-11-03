@@ -21,6 +21,8 @@ from .const import (
     ACTION_READ_PREFIX,
     CONF_EXCLUDED_SERVICES,
     CONF_MAX_ITEMS,
+    CONF_PUSH_ICON,
+    CONF_PUSH_ICON_FORCE,
     CONF_RETENTION_DAYS,
     CONF_RETENTION_READ_DAYS,
     DEFAULT_MAX_ITEMS,
@@ -155,6 +157,20 @@ class NotificationManager:
     @property
     def excluded_services(self) -> list[str]:
         return list(self._opt(CONF_EXCLUDED_SERVICES, []))
+
+    def _push_icon(self, info: dict[str, Any]) -> str | None:
+        """Bild für das Absender-Icon im Push (``icon_url``), sonst ``None``.
+
+        Das Standard-Icon aus den Optionen gilt für alle Typen. Hat ein Typ ein
+        eigenes Bild (Pfad oder Webadresse, kein MDI-Name), gewinnt dieses, es sei
+        denn, das Standard-Icon ist erzwungen.
+        """
+        default = str(self._opt(CONF_PUSH_ICON, "") or "").strip()
+        own = str(info.get("icon") or "")
+        own_image = own if own.startswith(("/", "http://", "https://")) else ""
+        if default and self._opt(CONF_PUSH_ICON_FORCE, False):
+            return default
+        return own_image or default or None
 
     # ------------------------------------------------------------------ Typen
 
@@ -435,6 +451,9 @@ class NotificationManager:
         if item.get("link"):
             data["url"] = item["link"]
             data["clickAction"] = item["link"]
+        icon_url = self._push_icon(info)
+        if icon_url:
+            data["icon_url"] = icon_url
         if (priority or info["priority"]) == PRIORITY_HIGH:
             data["push"] = {"interruption-level": "time-sensitive"}
         for service in services:

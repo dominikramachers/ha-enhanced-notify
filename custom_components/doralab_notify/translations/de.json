@@ -20,9 +20,14 @@
           "max_items": "Maximale Anzahl Meldungen",
           "import_persistent": "HA-Benachrichtigungen übernehmen und übersetzen",
           "dismiss_imported": "Übernommene HA-Benachrichtigungen in HA ausblenden",
-          "excluded_notify_services": "Geräte, die keine Push-Meldungen bekommen sollen"
+          "excluded_notify_services": "Geräte, die keine Push-Meldungen bekommen sollen",
+          "push_icon": "Standard-Icon für Push-Meldungen (Pfad oder Adresse, leer = aus)",
+          "push_icon_force": "Standard-Icon auch bei Typen mit eigenem Bild verwenden"
         }
       }
+    },
+    "error": {
+      "invalid_push_icon": "Bitte einen Pfad wie /local/logo.png oder eine http(s)-Adresse angeben."
     }
   },
   "entity": {

@@ -13,6 +13,8 @@ CONF_MAX_ITEMS = "max_items"
 CONF_IMPORT_PERSISTENT = "import_persistent"
 CONF_DISMISS_IMPORTED = "dismiss_imported"
 CONF_EXCLUDED_SERVICES = "excluded_notify_services"
+CONF_PUSH_ICON = "push_icon"
+CONF_PUSH_ICON_FORCE = "push_icon_force"
 
 DEFAULT_RETENTION_READ_DAYS = 14
 DEFAULT_RETENTION_DAYS = 60
