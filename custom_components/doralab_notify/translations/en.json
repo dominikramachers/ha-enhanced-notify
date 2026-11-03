@@ -20,9 +20,14 @@
           "max_items": "Maximum number of notifications",
           "import_persistent": "Import and translate HA notifications",
           "dismiss_imported": "Dismiss imported HA notifications in HA",
-          "excluded_notify_services": "Devices that should not receive push notifications"
+          "excluded_notify_services": "Devices that should not receive push notifications",
+          "push_icon": "Default icon for push notifications (path or URL, empty = off)",
+          "push_icon_force": "Use the default icon even for types with their own image"
         }
       }
+    },
+    "error": {
+      "invalid_push_icon": "Enter a path such as /local/logo.png or an http(s) URL."
     }
   },
   "entity": {

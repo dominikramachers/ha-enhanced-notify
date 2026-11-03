@@ -222,6 +222,54 @@ async def test_push_defaults_and_away_mode(hass: HomeAssistant):
     assert len(dom_calls) == 1 and len(sina_calls) == 2
 
 
+async def _push_data(hass, manager, type_id="paket_in_zustellung", **kwargs):
+    calls, _ = _add_person(hass, "dominik", "Dominik", "Dominik iPhone", "home")
+    await manager.async_send(type_id, "kommt heute", **kwargs)
+    await hass.async_block_till_done()
+    return calls[-1].data["data"]
+
+
+async def test_push_has_no_icon_by_default(hass: HomeAssistant):
+    _, manager = await _setup(hass)
+    assert "icon_url" not in await _push_data(hass, manager)
+
+
+async def test_push_uses_default_icon(hass: HomeAssistant):
+    _, manager = await _setup(hass, {"push_icon": "/local/doralab.png"})
+    assert (await _push_data(hass, manager))["icon_url"] == "/local/doralab.png"
+
+
+async def test_push_type_image_wins_unless_forced(hass: HomeAssistant):
+    _, manager = await _setup(hass, {"push_icon": "/local/doralab.png"})
+    manager.custom_types["zabbix_problem"] = {
+        "name": "Zabbix: Problem", "category": "system", "icon": "/local/zabbix.png", "auto": True,
+    }
+    manager.type_settings["zabbix_problem"] = {"recipients": ["person.dominik"]}
+    assert (await _push_data(hass, manager, "zabbix_problem"))["icon_url"] == "/local/zabbix.png"
+
+    manager.entry = MockConfigEntry(
+        domain=DOMAIN, data={}, options={"push_icon": "/local/doralab.png", "push_icon_force": True}
+    )
+    assert (await _push_data(hass, manager, "zabbix_problem"))["icon_url"] == "/local/doralab.png"
+
+
+async def test_push_mdi_type_icon_is_not_sent(hass: HomeAssistant):
+    """Ohne Standard-Icon wird ein MDI-Name nie als Bild gepusht; mit Standard-Icon gilt dieses."""
+    _, manager = await _setup(hass)
+    assert "icon_url" not in await _push_data(hass, manager)  # Katalog-Icon ist mdi:...
+    manager.entry = MockConfigEntry(domain=DOMAIN, data={}, options={"push_icon": "https://example.org/l.png"})
+    assert (await _push_data(hass, manager))["icon_url"] == "https://example.org/l.png"
+
+
+async def test_force_without_default_icon_keeps_type_image(hass: HomeAssistant):
+    _, manager = await _setup(hass, {"push_icon_force": True})
+    manager.custom_types["zabbix_problem"] = {
+        "name": "Zabbix: Problem", "category": "system", "icon": "/local/zabbix.png", "auto": True,
+    }
+    manager.type_settings["zabbix_problem"] = {"recipients": ["person.dominik"]}
+    assert (await _push_data(hass, manager, "zabbix_problem"))["icon_url"] == "/local/zabbix.png"
+
+
 async def test_set_type_recipients(hass: HomeAssistant):
     _, manager = await _setup(hass)
     dom_calls, _ = _add_person(hass, "dominik", "Dominik", "Dominik iPhone")
@@ -420,6 +468,27 @@ async def test_options_flow(hass: HomeAssistant):
     assert result["type"] == "create_entry"
     await hass.async_block_till_done()
     assert hass.data[DOMAIN].entry.options["retention_read_days"] == 7
+
+
+async def test_options_flow_push_icon(hass: HomeAssistant):
+    entry, _ = await _setup(hass)
+    base = {
+        "retention_read_days": 7, "retention_days": 30, "max_items": 100,
+        "import_persistent": True, "dismiss_imported": True, "excluded_notify_services": [],
+        "push_icon_force": True,
+    }
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    bad = await hass.config_entries.options.async_configure(
+        result["flow_id"], {**base, "push_icon": "mdi:cog"}
+    )
+    assert bad["type"] == "form" and bad["errors"] == {"push_icon": "invalid_push_icon"}
+    good = await hass.config_entries.options.async_configure(
+        bad["flow_id"], {**base, "push_icon": "  /local/doralab.png "}
+    )
+    assert good["type"] == "create_entry"
+    await hass.async_block_till_done()
+    assert hass.data[DOMAIN].entry.options["push_icon"] == "/local/doralab.png"
+    assert hass.data[DOMAIN].entry.options["push_icon_force"] is True
 
 
 async def test_once_and_baseline(hass: HomeAssistant):
