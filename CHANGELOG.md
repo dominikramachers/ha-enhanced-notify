@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0-beta.3 (Beta)
+
+- **Neu:** `doralab_notify.send` kennt `type_icon`: Icon des Typs als Icon-Name, Pfad (`/local/…`), Webadresse oder eingebettetes Bild. Gilt für automatisch angelegte Typen und folgt der Quelle bei jedem Aufruf (leer = Icon der Kategorie).
+- **Neu:** Liste und Admin-Übersicht stellen Bilder als Icons dar (Pfad, `http(s)`, `data:image`); Icon-Namen funktionieren wie zuvor. Unzulässige Angaben wie `javascript:` werden abgelehnt.
+- Abwärtskompatibel: ohne `type_icon` ändert sich nichts.
+
 ## 0.3.0-beta.2 (Beta)
 
 - **Geändert:** In der Push-Auswahl (Admin-Karte) erscheinen nur noch Personen mit registrierter Companion-App (Handy). Personen ohne Gerät, etwa reine Anmelde-Konten, werden nicht mehr gelistet. „Alle“ als Standard eines Typs meint ebenfalls nur Personen mit Handy; gespeicherte Auswahlen bleiben unverändert (nicht mehr auffindbare Personen sind einfach nicht wirksam).

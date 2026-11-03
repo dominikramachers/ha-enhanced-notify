@@ -69,6 +69,8 @@ data:
 
 Weitere optionale Felder: `icon`, `priority` (`normal`/`high`), `category` und `type_name` (nur beim automatischen Anlegen eines neuen Typs), `data`.
 
+**Eigenes Icon für automatisch angelegte Typen:** `type_icon` setzt das Icon des Typs in der Liste und in der Admin-Übersicht. Erlaubt sind ein Icon-Name (`mdi:server`), ein Pfad auf diese HA-Instanz (`/local/logo.png`, Datei unter `config/www/`), eine `http(s)`-Adresse oder ein eingebettetes Bild (`data:image/png;base64,…`). Das Icon wird bei jedem Aufruf übernommen, eine Änderung der Quelle gilt also auch für schon angelegte Typen; leer setzt es auf das Icon der Kategorie zurück. Typen aus dem Katalog behalten ihr Icon. Bilder füllen die runde bzw. abgerundete Icon-Fläche, am besten quadratisch.
+
 Gleicher `tag` mit geändertem Text aktualisiert die vorhandene Meldung (wird wieder ungelesen, rückt nach oben, Push wird ersetzt). Gleicher Tag mit gleichem Titel und Text wird ignoriert, solange sich der Inhalt nicht ändert: Die Integration merkt sich je Tag dauerhaft den zuletzt gemeldeten Inhalt. Eine gelesene oder gelöschte Meldung taucht deshalb nicht wieder auf, auch nicht nach einem Neustart oder wenn eine Automation sie erneut sendet; erst ein geänderter Text meldet wieder (neu, ungelesen, mit Push). Meldungen ohne `tag` und übernommene HA-Meldungen sind davon ausgenommen. Soll dieselbe Lage später erneut gemeldet werden können, gehört ein Datum o. Ä. in den Text.
 
 ### Nur einmal melden (`once`, `baseline`)

@@ -16,12 +16,20 @@ SNAPSHOT = {
         "paket": {"name": "Pakete", "icon": "mdi:package-variant", "color": "#3B82F6"},
         "klingel": {"name": "Haustür", "icon": "mdi:doorbell", "color": "#EF4444"},
     },
-    "types": {},
+    "types": {
+        "zabbix_problem": {"id": "zabbix_problem", "name": "Zabbix: Problem", "category": "paket", "icon": "/local/zabbix.png", "auto": True,
+                           "recipients_effective": [], "count": 1, "last": "2026-10-16T10:02:00+00:00", "push_when": "always"},
+        "klingel": {"id": "klingel", "name": "Klingel", "category": "klingel", "icon": "mdi:doorbell",
+                    "recipients_effective": [], "count": 1, "last": "2026-10-16T10:01:00+00:00", "push_when": "always"},
+    },
     "recipients": [],
     "items": [
         {"id": "a", "type": "paket_zugestellt", "category": "paket", "title": "Hermes", "message": "Zugestellt", "read": False, "count": 1, "updated": "2026-10-16T10:00:00+00:00", "link": ""},
         {"id": "b", "type": "klingel", "category": "klingel", "title": "Klingel", "message": "Es klingelt", "read": False, "count": 1, "updated": "2026-10-16T10:01:00+00:00", "link": ""},
         {"id": "c", "type": "klingel", "category": "klingel", "title": "Alt", "message": "gelesen", "read": True, "count": 1, "updated": "2026-10-15T10:01:00+00:00", "link": ""},
+        # Typ-Icon als Bild (Pfad) und eine unzulässige Icon-Angabe an der Meldung selbst
+        {"id": "d", "type": "zabbix_problem", "category": "paket", "title": "Zabbix", "message": "Problem", "read": True, "count": 1, "updated": "2026-10-15T09:00:00+00:00", "link": ""},
+        {"id": "e", "type": "klingel", "category": "klingel", "title": "Boese", "message": "x", "read": True, "count": 1, "updated": "2026-10-15T08:00:00+00:00", "link": "", "icon": "javascript:alert(1)"},
     ],
 }
 
@@ -88,7 +96,16 @@ def main():
         page.evaluate("document.getElementById('bellcard').shadowRoot.querySelector('.nbell').click()")
         page.wait_for_selector("doralab-notify-panel.open")
         titles = page.evaluate("[...document.querySelector('doralab-notify-panel').shadowRoot.querySelectorAll('.it b')].map(b => b.textContent)")
-        check(set(titles) == {"Hermes", "Klingel", "Alt"}, f"Liste: {titles}")
+        check(set(titles) == {"Hermes", "Klingel", "Alt", "Zabbix", "Boese"}, f"Liste: {titles}")
+        # Bild-Icon: <img> mit dem Pfad; MDI-Namen bleiben <ha-icon>; unzulaessige Angaben werden nie zu <img>
+        imgs = page.evaluate("[...document.querySelector('doralab-notify-panel').shadowRoot.querySelectorAll('.it .ic img')].map(i => i.getAttribute('src'))")
+        check(imgs == ["/local/zabbix.png"], f"Bild-Icons in der Liste: {imgs}")
+        check(page.evaluate("document.querySelector('doralab-notify-panel').shadowRoot.querySelectorAll('.it .ic ha-icon').length") == 4, "MDI-Icons in der Liste")
+        # Admin-Karte: Typ-Icon als Bild
+        page.evaluate("(() => { const c = document.createElement('doralab-notify-admin'); c.setConfig({}); c.hass = document.querySelector('home-assistant').hass; c.id = 'admincard'; document.body.appendChild(c); })()")
+        page.wait_for_function("document.getElementById('admincard').shadowRoot.querySelectorAll('.ty').length === 2", timeout=6000)
+        adm = page.evaluate("[...document.getElementById('admincard').shadowRoot.querySelectorAll('.ty .ic')].map(e => e.querySelector('img') ? 'img:' + e.querySelector('img').getAttribute('src') : 'ha-icon:' + e.querySelector('ha-icon').getAttribute('icon'))")
+        check(sorted(adm) == ["ha-icon:mdi:doorbell", "img:/local/zabbix.png"], f"Admin-Icons: {adm}")
         page.evaluate("document.querySelector('doralab-notify-panel').shadowRoot.querySelector('[data-a=\"readall\"]').click()")
         page.wait_for_function("window.calls.some(c => c.type === 'doralab_notify/mark_read' && c.all)")
         browser.close()

@@ -230,13 +230,17 @@ class NotificationManager:
         self._changed()
 
     def _register_custom_type(
-        self, type_id: str, name: str | None, category: str | None
+        self,
+        type_id: str,
+        name: str | None,
+        category: str | None,
+        icon: str | None = None,
     ) -> None:
         category = category if category in CATEGORIES else DEFAULT_CATEGORY
         self.custom_types[type_id] = {
             "name": name or type_id.replace("_", " ").capitalize(),
             "category": category,
-            "icon": CATEGORIES[category]["icon"],
+            "icon": icon or CATEGORIES[category]["icon"],
             "description": "Automatisch angelegt beim ersten Auslösen.",
             "default_push": "none",
             "auto": True,
@@ -276,6 +280,7 @@ class NotificationManager:
         priority: str | None = None,
         category: str | None = None,
         type_name: str | None = None,
+        type_icon: str | None = None,
         data: dict[str, Any] | None = None,
         once: bool = False,
         baseline: bool = False,
@@ -291,6 +296,9 @@ class NotificationManager:
         gemerkt. Dieselbe Meldung (gleicher Titel und Text) taucht danach nicht
         wieder auf, auch nicht nach Lesen, Löschen oder einem Neustart; erst ein
         geänderter Inhalt meldet wieder.
+        ``type_icon``: Icon des Typs (MDI-Name, Pfad oder Bildadresse). Gilt nur
+        für automatisch angelegte Typen und wird bei jedem Aufruf übernommen, so
+        folgt ein geändertes Icon der Quelle. Leer = Icon der Kategorie.
         """
         if (once or baseline) and not tag:
             raise ServiceValidationError("once und baseline brauchen einen tag")
@@ -307,7 +315,15 @@ class NotificationManager:
         if not type_id:
             raise ServiceValidationError("Der Typ darf nicht leer sein")
         if type_id not in self._type_defs():
-            self._register_custom_type(type_id, type_name, category)
+            self._register_custom_type(type_id, type_name, category, type_icon or None)
+        elif type_icon is not None:
+            custom = self.custom_types.get(type_id)
+            # Katalog-Typen behalten ihr Icon; nur automatisch angelegte folgen der Quelle
+            if custom and custom.get("auto") and type_id not in CATALOG:
+                wanted = type_icon or CATEGORIES.get(custom.get("category"), CATEGORIES[DEFAULT_CATEGORY])["icon"]
+                if custom.get("icon") != wanted:
+                    custom["icon"] = wanted
+                    self._changed()
         info = self.types_view()[type_id]
         final_title = title or info["name"]
         now = dt_util.utcnow().isoformat()

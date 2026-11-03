@@ -52,6 +52,10 @@ send:
       example: Mein neuer Typ
       selector:
         text:
+    type_icon:
+      example: /local/zabbix.png
+      selector:
+        text:
     once:
       default: false
       selector:
