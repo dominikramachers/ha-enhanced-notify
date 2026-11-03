@@ -66,6 +66,8 @@ class NotificationManager:
         # Zuletzt gemeldeter Inhalt je Tag (tag -> Fingerabdruck). Verhindert, dass
         # gelesene oder gelöschte Meldungen mit gleichem Inhalt neu auftauchen.
         self.announced: dict[str, str] = {}
+        # zuletzt gemeldeter Text je Tag (ohne Titel), siehe async_send
+        self.announced_msg: dict[str, str] = {}
         self._listeners: list[Callable[[], None]] = []
 
     # ------------------------------------------------------------------ Speicher
@@ -78,6 +80,7 @@ class NotificationManager:
         self.stats = dict(data.get("stats", {}))
         self.seen = dict.fromkeys(data.get("seen", []))
         self.announced = dict(data.get("announced", {}))
+        self.announced_msg = dict(data.get("announced_msg", {}))
         # Bestehende Meldungen mit Tag merken (Update von einer Version ohne Merkzettel)
         for item in reversed(self.items):
             item_tag = item.get("tag")
@@ -85,6 +88,10 @@ class NotificationManager:
                 TAG_PERSISTENT_PREFIX
             ):
                 self.announced[item_tag] = self._fingerprint(item["title"], item["message"])
+            if item_tag and item_tag not in self.announced_msg and not str(item_tag).startswith(
+                TAG_PERSISTENT_PREFIX
+            ):
+                self.announced_msg[item_tag] = self._fingerprint("", item["message"])
         self._retranslate_persistent()
 
     def _retranslate_persistent(self) -> None:
@@ -124,6 +131,7 @@ class NotificationManager:
             "stats": self.stats,
             "seen": list(self.seen),
             "announced": self.announced,
+            "announced_msg": self.announced_msg,
         }
 
     async def async_flush(self) -> None:
@@ -348,7 +356,11 @@ class NotificationManager:
         fingerprint: str | None = None
         if tag and remember:
             fingerprint = self._fingerprint(final_title, message)
-            if self.announced.get(tag) == fingerprint:
+            # Gleicher Text gilt als gleiche Meldung, auch wenn sich nur der Titel
+            # ändert (z. B. wechselt der Artikelname bei Sammelbestellungen).
+            if self.announced.get(tag) == fingerprint or self.announced_msg.get(tag) == self._fingerprint(
+                "", message
+            ):
                 known = next((i for i in self.items if i.get("tag") == tag), None)
                 return {"id": known["id"] if known else None, "deduplicated": True}
 
@@ -398,6 +410,10 @@ class NotificationManager:
             self.announced[tag] = fingerprint
             while len(self.announced) > MAX_SEEN:
                 self.announced.pop(next(iter(self.announced)))
+            self.announced_msg.pop(tag, None)
+            self.announced_msg[tag] = self._fingerprint("", message)
+            while len(self.announced_msg) > MAX_SEEN:
+                self.announced_msg.pop(next(iter(self.announced_msg)))
 
         stat = self.stats.setdefault(type_id, {"count": 0})
         stat["last"] = now

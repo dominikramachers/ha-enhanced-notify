@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.3
+
+- Korrektur: Eine Meldung mit `tag` kommt nicht mehr erneut, wenn sich nur der **Titel** ändert. Vorher verglich die Duplikat-Erkennung Titel und Text. Bei Amazon-Sammelbestellungen wechselt der Artikelname im Titel zwischen den Artikeln der Sendung; dadurch kam dieselbe „Zugestellt“-Meldung mehrfach (nach Lesen oder Löschen sogar neu, auch nach einem Neustart). Maßgeblich ist jetzt der Text je `tag`; ein geänderter Text meldet weiterhin neu. Bestehende Daten werden beim Start automatisch übernommen, nach dem Update kommt nichts doppelt.
+
 ## 1.0.2
 
 - Korrektur: Die Version in `manifest.json` stand bei Release `v1.0.1` noch auf 1.0.0, der Release-Check schlug deshalb fehl. Ab 1.0.2 passen Tag und `manifest.json` wieder zusammen. Inhaltlich entspricht 1.0.2 der Version 1.0.1.
