@@ -2,7 +2,7 @@
 
 import pytest
 
-from custom_components.doralab_notify.translate import clean, translate_persistent
+from custom_components.enhanced_notify.translate import clean, translate_persistent
 
 
 @pytest.mark.parametrize(

@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.0-rc.1 (Release Candidate)
+
+**Umbenennung:** Aus *DORALAB Benachrichtigungen* (`doralab_notify`) wird **Enhanced Notify** (`enhanced_notify`). Das Repository heißt weiterhin `ha-enhanced-notify`.
+
+- **Geändert (Breaking):** Domain `enhanced_notify`, Ordner `custom_components/enhanced_notify`, Aktionen `enhanced_notify.send|mark_read|delete|set_type`, Ereignis `enhanced_notify_created`, Speicherdatei `.storage/enhanced_notify`, Karten `custom:enhanced-notify-bell` und `custom:enhanced-notify-admin`, Websocket-Befehle `enhanced_notify/*`, Button-Kennung der Push-Meldung `ENHANCED_NOTIFY_READ_`.
+- **Neu:** Automatischer Umstieg. Beim Einrichten von *Enhanced Notify* werden Meldungen, Typ-Einstellungen, Merkzettel und Optionen der alten Integration übernommen, der Zähler-Sensor behält Entity-ID und Verlauf, der alte Eintrag wird entfernt. `.storage/doralab_notify` bleibt als Sicherung liegen.
+- **Neu:** Bis 2.0 funktionieren die alten Aktionen `doralab_notify.*` und die alten Kartennamen weiter. Ein Aufruf der alten Aktion erzeugt eine Warnung im Protokoll und einen Hinweis unter *Reparaturen*. Push-Buttons bereits zugestellter Meldungen („Gelesen“) wirken weiter.
+- **Neu:** Nur noch ein Eintrag der Integration möglich (`single_config_entry`).
+- Schritte für den Umstieg: siehe README, Abschnitt *Umstieg*.
+
 ## 0.3.0-beta.4 (Beta)
 
 - **Neu:** Option *Standard-Icon für Push-Meldungen* (Pfad oder Adresse eines Bildes). Die Meldung trägt es als `icon_url`, sodass es auf dem Handy statt des Standardsymbols erscheint. Hat ein Typ ein eigenes Bild (`type_icon`), gilt dieses; der Schalter *Standard-Icon auch bei Typen mit eigenem Bild verwenden* erzwingt das Standard-Icon für alle.

@@ -8,7 +8,7 @@ import sys
 
 from playwright.sync_api import sync_playwright
 
-JS = Path(__file__).parents[1] / "custom_components" / "doralab_notify" / "frontend" / "doralab-notify.js"
+JS = Path(__file__).parents[1] / "custom_components" / "enhanced_notify" / "frontend" / "enhanced-notify.js"
 
 SNAPSHOT = {
     "unread": 2,
@@ -77,12 +77,12 @@ def main():
         page.wait_for_timeout(500)
         check(errors == [], f"Skriptfehler: {errors}")
         check(
-            page.evaluate("['doralab-notify-bell','doralab-notify-admin','doralab-notify-panel'].every(n => !!customElements.get(n))"),
+            page.evaluate("['enhanced-notify-bell','enhanced-notify-admin','enhanced-notify-panel'].every(n => !!customElements.get(n))"),
             "Elemente nicht registriert",
         )
-        check(page.evaluate("window.customCards.filter(c => c.type === 'doralab-notify-bell').length") == 1, "Karte doppelt registriert")
+        check(page.evaluate("window.customCards.filter(c => c.type === 'enhanced-notify-bell').length") == 1, "Karte doppelt registriert")
         # Sidebar-Glocke ohne Karte: hass kommt direkt vom home-assistant-Element
-        page.wait_for_function("window.doralabNotify.snap && window.doralabNotify.snap.unread === 2", timeout=6000)
+        page.wait_for_function("window.enhancedNotify.snap && window.enhancedNotify.snap.unread === 2", timeout=6000)
         page.wait_for_function(
             "(() => { const sb = document.querySelector('home-assistant').shadowRoot.querySelector('home-assistant-main').shadowRoot.querySelector('ha-sidebar');"
             " const b = sb.shadowRoot.querySelector('#sidebar-notifications .badge[data-nb]'); return b && b.textContent === '2'; })()",
@@ -90,24 +90,24 @@ def main():
         )
         # Bell-Karte
         page.evaluate(
-            "(() => { const c = document.createElement('doralab-notify-bell'); c.setConfig({}); c.hass = document.querySelector('home-assistant').hass; c.id = 'bellcard'; document.body.appendChild(c); })()"
+            "(() => { const c = document.createElement('enhanced-notify-bell'); c.setConfig({}); c.hass = document.querySelector('home-assistant').hass; c.id = 'bellcard'; document.body.appendChild(c); })()"
         )
         check(page.evaluate("document.getElementById('bellcard').shadowRoot.querySelector('.nb').textContent") == "2", "Zähler der Bell-Karte")
         page.evaluate("document.getElementById('bellcard').shadowRoot.querySelector('.nbell').click()")
-        page.wait_for_selector("doralab-notify-panel.open")
-        titles = page.evaluate("[...document.querySelector('doralab-notify-panel').shadowRoot.querySelectorAll('.it b')].map(b => b.textContent)")
+        page.wait_for_selector("enhanced-notify-panel.open")
+        titles = page.evaluate("[...document.querySelector('enhanced-notify-panel').shadowRoot.querySelectorAll('.it b')].map(b => b.textContent)")
         check(set(titles) == {"Hermes", "Klingel", "Alt", "Zabbix", "Boese"}, f"Liste: {titles}")
         # Bild-Icon: <img> mit dem Pfad; MDI-Namen bleiben <ha-icon>; unzulaessige Angaben werden nie zu <img>
-        imgs = page.evaluate("[...document.querySelector('doralab-notify-panel').shadowRoot.querySelectorAll('.it .ic img')].map(i => i.getAttribute('src'))")
+        imgs = page.evaluate("[...document.querySelector('enhanced-notify-panel').shadowRoot.querySelectorAll('.it .ic img')].map(i => i.getAttribute('src'))")
         check(imgs == ["/local/zabbix.png"], f"Bild-Icons in der Liste: {imgs}")
-        check(page.evaluate("document.querySelector('doralab-notify-panel').shadowRoot.querySelectorAll('.it .ic ha-icon').length") == 4, "MDI-Icons in der Liste")
+        check(page.evaluate("document.querySelector('enhanced-notify-panel').shadowRoot.querySelectorAll('.it .ic ha-icon').length") == 4, "MDI-Icons in der Liste")
         # Admin-Karte: Typ-Icon als Bild
-        page.evaluate("(() => { const c = document.createElement('doralab-notify-admin'); c.setConfig({}); c.hass = document.querySelector('home-assistant').hass; c.id = 'admincard'; document.body.appendChild(c); })()")
+        page.evaluate("(() => { const c = document.createElement('enhanced-notify-admin'); c.setConfig({}); c.hass = document.querySelector('home-assistant').hass; c.id = 'admincard'; document.body.appendChild(c); })()")
         page.wait_for_function("document.getElementById('admincard').shadowRoot.querySelectorAll('.ty').length === 2", timeout=6000)
         adm = page.evaluate("[...document.getElementById('admincard').shadowRoot.querySelectorAll('.ty .ic')].map(e => e.querySelector('img') ? 'img:' + e.querySelector('img').getAttribute('src') : 'ha-icon:' + e.querySelector('ha-icon').getAttribute('icon'))")
         check(sorted(adm) == ["ha-icon:mdi:doorbell", "img:/local/zabbix.png"], f"Admin-Icons: {adm}")
-        page.evaluate("document.querySelector('doralab-notify-panel').shadowRoot.querySelector('[data-a=\"readall\"]').click()")
-        page.wait_for_function("window.calls.some(c => c.type === 'doralab_notify/mark_read' && c.all)")
+        page.evaluate("document.querySelector('enhanced-notify-panel').shadowRoot.querySelector('[data-a=\"readall\"]').click()")
+        page.wait_for_function("window.calls.some(c => c.type === 'enhanced_notify/mark_read' && c.all)")
         browser.close()
     print("OK")
 

@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "DORALAB Benachrichtigungen",
+        "title": "Enhanced Notify",
         "description": "Richtet die zentrale Benachrichtigungsliste ein. Push-Empfänger je Meldungstyp stellst du danach in der Einstellungsübersicht ein."
       }
     },
@@ -157,6 +157,12 @@
           "description": "Auf die Vorgabe des Katalogs zurücksetzen."
         }
       }
+    }
+  },
+  "issues": {
+    "deprecated_service": {
+      "title": "Veralteter Dienst wird verwendet",
+      "description": "Eine Automation oder ein Skript ruft **{old}** auf. Der Dienst wurde in **{new}** umbenannt; der alte Name funktioniert nur noch übergangsweise und entfällt in Version 2.0. Bitte den Aufruf anpassen (Suche in Automationen, Skripten und Dashboards nach `doralab_notify`)."
     }
   }
 }

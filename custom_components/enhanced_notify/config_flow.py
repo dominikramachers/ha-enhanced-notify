@@ -36,20 +36,20 @@ from .const import (
 from .recipients import all_mobile_services
 
 
-class DoralabNotifyConfigFlow(ConfigFlow, domain=DOMAIN):
+class EnhancedNotifyConfigFlow(ConfigFlow, domain=DOMAIN):
     """Einrichtung: ein Klick, alles Weitere in den Optionen."""
 
     VERSION = 1
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         if user_input is not None:
-            return self.async_create_entry(title="DORALAB Benachrichtigungen", data={})
+            return self.async_create_entry(title="Enhanced Notify", data={})
         return self.async_show_form(step_id="user")
 
     @staticmethod
     @callback
     def async_get_options_flow(config_entry: Any) -> OptionsFlow:
-        return DoralabNotifyOptionsFlow()
+        return EnhancedNotifyOptionsFlow()
 
 
 # Bild für das Push-Icon: Pfad auf diese HA-Instanz (/local/logo.png) oder Webadresse.
@@ -63,7 +63,7 @@ def _days(minimum: int, maximum: int) -> NumberSelector:
     )
 
 
-class DoralabNotifyOptionsFlow(OptionsFlow):
+class EnhancedNotifyOptionsFlow(OptionsFlow):
     """Aufbewahrung, HA-Meldungen übernehmen, ausgeschlossene Geräte."""
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:

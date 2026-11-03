@@ -21,7 +21,7 @@ actions:
   - repeat:
       for_each: "{{ events }}"
       sequence:
-        - action: doralab_notify.send
+        - action: enhanced_notify.send
           data:
             type: kalender_neuer_termin
             title: "Neuer Termin: {{ repeat.item.summary }}"

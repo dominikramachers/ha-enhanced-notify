@@ -35,8 +35,8 @@ class UnreadSensor(SensorEntity):
         self._attr_unique_id = f"{entry.entry_id}_unread"
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
-            name="DORALAB Benachrichtigungen",
-            manufacturer="DORALAB",
+            name="Enhanced Notify",
+            manufacturer="Enhanced Notify",
             entry_type=DeviceEntryType.SERVICE,
         )
 

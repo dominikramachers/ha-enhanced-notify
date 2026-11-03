@@ -1,9 +1,9 @@
-// DORALAB Benachrichtigungen: Glocke (Sidebar, Bell-Karte, optional Kiosk-/Handy-Header), Meldungsliste, Admin-Karte (Push je Typ und Person).
-// Wird von der Integration doralab_notify selbst ausgeliefert und in HA geladen (Websocket doralab_notify/subscribe|mark_read|delete|set_type).
+// Enhanced Notify: Glocke (Sidebar, Bell-Karte, optional Kiosk-/Handy-Header), Meldungsliste, Admin-Karte (Push je Typ und Person).
+// Wird von der Integration enhanced_notify selbst ausgeliefert und in HA geladen (Websocket enhanced_notify/subscribe|mark_read|delete|set_type).
 // Mehrfaches Laden ist unkritisch: die erste geladene Kopie gewinnt.
 (() => {
-if (window.__doralabNotifyLoaded) return;
-window.__doralabNotifyLoaded = 1;
+if (window.__enhancedNotifyLoaded) return;
+window.__enhancedNotifyLoaded = 1;
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 // Icon-Angabe: Bild (Pfad auf diese HA-Instanz, http(s)-Adresse, data:image) oder Icon-Name (mdi:...)
 const isImg = (s) => typeof s === 'string' && (/^\/(?!\/)\S/.test(s) || /^https?:\/\/\S/i.test(s) || /^data:image\/(png|jpe?g|gif|webp|svg\+xml);base64,/i.test(s));
@@ -14,13 +14,13 @@ const reg = (t, n, d) => { if (!window.customCards.some((c) => c.type === t)) wi
 const navigate = (path) => { history.pushState(null, '', path); window.dispatchEvent(new CustomEvent('location-changed', { bubbles: true, composed: true })); };
 
 // ---------- Datenquelle (gemeinsam für alle Komponenten) ----------
-const N = (window.doralabNotify = { snap: null, hass: null, started: false, retry: 0, ls: new Set(), bells: new Set(), filter: 'all' });
+const N = (window.enhancedNotify = { snap: null, hass: null, started: false, retry: 0, ls: new Set(), bells: new Set(), filter: 'all' });
 N.setHass = (h) => {
   if (!h) return;
   N.hass = h;
   if (N.started || !h.connection || Date.now() < N.retry) return;
   N.started = true;
-  h.connection.subscribeMessage((s) => { N.snap = s; N.emit(); }, { type: 'doralab_notify/subscribe' })
+  h.connection.subscribeMessage((s) => { N.snap = s; N.emit(); }, { type: 'enhanced_notify/subscribe' })
     .catch(() => { N.started = false; N.retry = Date.now() + 30000; });
 };
 // hass auch ohne Karte beziehen (Sidebar-Glocke funktioniert damit auf jeder HA-Seite)
@@ -32,13 +32,13 @@ N.autoHass = () => {
 N.emit = () => {
   N.bells.forEach((b) => { if (b.isConnected) N.paint(b); else N.bells.delete(b); });
   try { N.sidebar(); } catch (e) { /* ignore */ }
-  N.ls.forEach((f) => { try { f(N.snap); } catch (e) { console.error('doralab-notify', e); } });
+  N.ls.forEach((f) => { try { f(N.snap); } catch (e) { console.error('enhanced-notify', e); } });
 };
 N.call = (msg) => N.hass.callWS(msg);
-N.read = (ids, read = true) => N.call({ type: 'doralab_notify/mark_read', ids, read });
-N.readAll = () => N.call({ type: 'doralab_notify/mark_read', all: true });
-N.del = (ids) => N.call({ type: 'doralab_notify/delete', ids });
-N.delRead = () => N.call({ type: 'doralab_notify/delete', all: true, only_read: true });
+N.read = (ids, read = true) => N.call({ type: 'enhanced_notify/mark_read', ids, read });
+N.readAll = () => N.call({ type: 'enhanced_notify/mark_read', all: true });
+N.del = (ids) => N.call({ type: 'enhanced_notify/delete', ids });
+N.delRead = () => N.call({ type: 'enhanced_notify/delete', all: true, only_read: true });
 const items = () => (N.snap && N.snap.items) || [];
 const unread = () => (N.snap ? N.snap.unread || 0 : 0);
 
@@ -102,8 +102,8 @@ const mobileBell = (host) => {
   const w = document.createElement('div'); w.style.cssText = 'display:flex;gap:10px;flex:none';
   sb.parentNode.insertBefore(w, sb); w.appendChild(bellEl('m')); w.appendChild(sb);
 };
-// Glocke als eigenständige Karte für beliebige Dashboards: type: custom:doralab-notify-bell
-class DoralabNotifyBell extends HTMLElement {
+// Glocke als eigenständige Karte für beliebige Dashboards: type: custom:enhanced-notify-bell
+class EnhancedNotifyBell extends HTMLElement {
   constructor() { super(); this.attachShadow({ mode: 'open' }); }
   setConfig(c) { this._c = c || {}; this._build(); }
   getCardSize() { return 1; }
@@ -120,19 +120,20 @@ class DoralabNotifyBell extends HTMLElement {
     N.paint(sr.querySelector('.nbell'));
   }
 }
-def('doralab-notify-bell', DoralabNotifyBell);
-reg('doralab-notify-bell', 'Benachrichtigungen (Glocke)', 'Glocke mit Zähler, öffnet die Meldungsliste');
+def('enhanced-notify-bell', EnhancedNotifyBell);
+def('doralab-notify-bell', class extends EnhancedNotifyBell {}); // alter Kartenname (bis 0.3.x), entfällt in 2.0
+reg('enhanced-notify-bell', 'Benachrichtigungen (Glocke)', 'Glocke mit Zähler, öffnet die Meldungsliste');
 
 // Optionale Anbindung an die DORALAB-Dashboards (nur aktiv, wenn es diese Elemente gibt)
 customElements.whenDefined('doralab-kt-page').then((K) => {
   const P = K.prototype; if (P.__nb) return; P.__nb = 1;
   const ou = P._upd;
-  P._upd = function () { const r = ou.apply(this, arguments); try { N.setHass(this._hass); kioskBell(this); } catch (e) { console.error('doralab-notify kiosk', e); } return r; };
+  P._upd = function () { const r = ou.apply(this, arguments); try { N.setHass(this._hass); kioskBell(this); } catch (e) { console.error('enhanced-notify kiosk', e); } return r; };
 });
 customElements.whenDefined('doralab-home-header').then((C) => {
   const P = C.prototype; if (P.__nb) return; P.__nb = 1;
   const ou = P._update;
-  P._update = function () { const r = ou.apply(this, arguments); try { N.setHass(this._h); mobileBell(this); } catch (e) { console.error('doralab-notify mobile', e); } return r; };
+  P._update = function () { const r = ou.apply(this, arguments); try { N.setHass(this._h); mobileBell(this); } catch (e) { console.error('enhanced-notify mobile', e); } return r; };
 });
 
 // ---------- Glocke der HA-Sidebar übernehmen (Web und App) ----------
@@ -220,7 +221,7 @@ button{font:inherit;color:inherit;border:0;padding:0;margin:0;background:none;cu
 .sh{width:100%;height:calc(100% - env(safe-area-inset-top,0px) - 14px);border-radius:24px 24px 0 0}
 .hd{padding-top:16px}
 }`;
-class DoralabNotifyPanel extends HTMLElement {
+class EnhancedNotifyPanel extends HTMLElement {
   constructor() { super(); this.attachShadow({ mode: 'open' }); this._open = false; }
   connectedCallback() {
     this._f = () => this._render();
@@ -287,14 +288,14 @@ class DoralabNotifyPanel extends HTMLElement {
         if (row.dataset.r !== '1') await N.read([row.dataset.id]);
         if (row.dataset.l) { this.close(); navigate(row.dataset.l); }
       }
-    } catch (err) { console.error('doralab-notify', err); }
+    } catch (err) { console.error('enhanced-notify', err); }
   }
 }
-def('doralab-notify-panel', DoralabNotifyPanel);
+def('enhanced-notify-panel', EnhancedNotifyPanel);
 N.open = () => {
   N.autoHass();
-  let p = document.querySelector('doralab-notify-panel');
-  if (!p) { p = document.createElement('doralab-notify-panel'); document.body.appendChild(p); }
+  let p = document.querySelector('enhanced-notify-panel');
+  if (!p) { p = document.createElement('enhanced-notify-panel'); document.body.appendChild(p); }
   p.open();
 };
 
@@ -343,7 +344,7 @@ h1{margin:6px 0 4px;font-size:26px;font-weight:800;letter-spacing:-.01em}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);padding:10px 18px;border-radius:14px;background:var(--primary-text-color,#101B2D);color:var(--card-background-color,#fff);font-size:13.5px;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,.3);z-index:5}
 .toast[hidden]{display:none}
 .wait{padding:40px;text-align:center;color:var(--secondary-text-color,#667085)}`;
-class DoralabNotifyAdmin extends HTMLElement {
+class EnhancedNotifyAdmin extends HTMLElement {
   constructor() { super(); this.attachShadow({ mode: 'open' }); }
   setConfig(c) { this._c = c || {}; }
   getCardSize() { return 12; }
@@ -398,20 +399,21 @@ class DoralabNotifyAdmin extends HTMLElement {
       if (b.dataset.a === 'p') {
         const cur = new Set(t.recipients_effective || []);
         if (cur.has(b.dataset.p)) cur.delete(b.dataset.p); else cur.add(b.dataset.p);
-        await N.call({ type: 'doralab_notify/set_type', type_id: t.id, recipients: [...cur] });
+        await N.call({ type: 'enhanced_notify/set_type', type_id: t.id, recipients: [...cur] });
       } else if (b.dataset.a === 'w') {
-        await N.call({ type: 'doralab_notify/set_type', type_id: t.id, push_when: b.dataset.w });
+        await N.call({ type: 'enhanced_notify/set_type', type_id: t.id, push_when: b.dataset.w });
       } else if (b.dataset.a === 'reset') {
-        await N.call({ type: 'doralab_notify/set_type', type_id: t.id, reset: true });
+        await N.call({ type: 'enhanced_notify/set_type', type_id: t.id, reset: true });
         this._toast(`„${t.name}“ auf Standard zurückgesetzt`);
       } else if (b.dataset.a === 'test') {
         const now = new Date().toLocaleTimeString('de-DE');
-        await this._h.callService('doralab_notify', 'send', { type: t.id, title: `Test: ${t.name}`, message: `${t.example || t.name} (Test ${now})`, tag: `test:${t.id}` });
+        await this._h.callService('enhanced_notify', 'send', { type: t.id, title: `Test: ${t.name}`, message: `${t.example || t.name} (Test ${now})`, tag: `test:${t.id}` });
         this._toast('Testmeldung gesendet');
       }
     } catch (err) { this._toast(`Fehler: ${err && err.message ? err.message : err}`); }
   }
 }
-def('doralab-notify-admin', DoralabNotifyAdmin);
-reg('doralab-notify-admin', 'DORALAB Benachrichtigungen (Admin)', 'Push je Meldungstyp und Person einstellen');
+def('enhanced-notify-admin', EnhancedNotifyAdmin);
+def('doralab-notify-admin', class extends EnhancedNotifyAdmin {}); // alter Kartenname (bis 0.3.x), entfällt in 2.0
+reg('enhanced-notify-admin', 'Enhanced Notify (Admin)', 'Push je Meldungstyp und Person einstellen');
 })();

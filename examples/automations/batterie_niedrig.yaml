@@ -8,7 +8,7 @@ triggers:
       - sensor.bewegungsmelder_flur_batterie
     below: 15
 actions:
-  - action: doralab_notify.send
+  - action: enhanced_notify.send
     data:
       type: batterie_niedrig
       type_name: Batterie niedrig

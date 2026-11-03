@@ -8,7 +8,7 @@ triggers:
     for:
       minutes: 2
 actions:
-  - action: doralab_notify.send
+  - action: enhanced_notify.send
     data:
       type: waschmaschine_fertig
       message: "Die Waschmaschine ist fertig. Wäsche kann ausgeräumt werden."

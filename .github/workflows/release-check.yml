@@ -19,7 +19,7 @@ jobs:
       - name: Tag und manifest.json vergleichen
         run: |
           tag="${{ github.event.release.tag_name }}"
-          manifest=$(python3 -c "import json;print(json.load(open('custom_components/doralab_notify/manifest.json'))['version'])")
+          manifest=$(python3 -c "import json;print(json.load(open('custom_components/enhanced_notify/manifest.json'))['version'])")
           if [ "${tag#v}" != "$manifest" ]; then
             echo "::error::Tag $tag passt nicht zu manifest.json ($manifest)"
             exit 1

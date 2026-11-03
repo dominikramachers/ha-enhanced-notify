@@ -6,7 +6,7 @@ triggers:
     entity_id: sensor.vorrat_milch                # anpassen
     above: 1
 actions:
-  - action: doralab_notify.delete
+  - action: enhanced_notify.delete
     data:
       tags:
         - vorrat_niedrig:milch

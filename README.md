@@ -1,4 +1,4 @@
-# DORALAB Benachrichtigungen (`doralab_notify`)
+# Enhanced Notify (`enhanced_notify`)
 
 > *Central notification center for Home Assistant: one shared list with unread status, a bell with counter, push per notification type and person, German-language UI. (Documentation is in German.)*
 
@@ -23,8 +23,8 @@ Zentrale Benachrichtigungsliste für Home Assistant, gedacht für Wand-Tablet (K
 ### Über HACS (empfohlen)
 
 1. HACS → Integrationen → ⋮ → *Benutzerdefinierte Repositories* → `https://github.com/dominikramachers/ha-enhanced-notify`, Kategorie *Integration*.
-2. **DORALAB Benachrichtigungen** installieren, Home Assistant neu starten.
-3. Einstellungen → Geräte & Dienste → Integration hinzufügen → **DORALAB Benachrichtigungen**.
+2. **Enhanced Notify** installieren, Home Assistant neu starten.
+3. Einstellungen → Geräte & Dienste → Integration hinzufügen → **Enhanced Notify**.
 
 Die Oberfläche (Glocke, Liste, Karten) liefert die Integration selbst aus. Es ist **keine Dashboard-Ressource** einzutragen, ein Browser-Neuladen (Strg+F5) genügt.
 
@@ -32,25 +32,41 @@ Die Oberfläche (Glocke, Liste, Karten) liefert die Integration selbst aus. Es i
 
 Vorabversionen (`…-beta.N`) erscheinen in HACS nur, wenn du sie freischaltest. In HACS 2.x gibt es dafür je Repository einen Schalter als Entität, der standardmäßig **deaktiviert** ist:
 
-1. Einstellungen → Geräte & Dienste → HACS → *Entitäten*, den deaktivierten Schalter **„DORALAB Benachrichtigungen Pre-release“** suchen, öffnen und *Aktivieren* (die HACS-Integration lädt danach neu).
+1. Einstellungen → Geräte & Dienste → HACS → *Entitäten*, den deaktivierten Schalter **„Enhanced Notify Pre-release“** suchen, öffnen und *Aktivieren* (die HACS-Integration lädt danach neu).
 2. Den Schalter einschalten.
 
 Danach zeigt Home Assistant neue Betas wie jedes andere Update unter Einstellungen → System → Updates an. Ohne den Schalter bekommst du nur stabile Versionen. Hast du eine Beta von Hand installiert, ohne den Schalter einzuschalten, meldet HACS fälschlich ein „Update“ auf einen Commit-Stand; mit eingeschaltetem Schalter verschwindet das.
 
 ### Manuell
 
-Den Ordner `custom_components/doralab_notify` in dein `config/custom_components/` kopieren und neu starten.
+Den Ordner `custom_components/enhanced_notify` in dein `config/custom_components/` kopieren und neu starten.
+
+## Umstieg von „DORALAB Benachrichtigungen“ (bis 0.3.x)
+
+Bis Version 0.3 hieß die Integration *DORALAB Benachrichtigungen* (`doralab_notify`). Seit 1.0 heißt sie **Enhanced Notify** (`enhanced_notify`). Home Assistant kann den Namen einer Integration nicht ändern; deshalb übernimmt die neue Version alles beim Einrichten selbst. **Meldungen, Typ-Einstellungen, Optionen und der Zähler-Sensor (Entity-ID und Verlauf) bleiben erhalten.**
+
+1. In HACS auf die neue Version aktualisieren und Home Assistant neu starten. Die alte Integration ist danach nicht mehr geladen und zeigt „Nicht geladen“.
+2. Einstellungen → Geräte & Dienste → Integration hinzufügen → **Enhanced Notify**. Beim Einrichten werden die Daten der alten Integration übernommen und der alte Eintrag entfernt. Die alte Speicherdatei `.storage/doralab_notify` bleibt als Sicherung liegen und kann später gelöscht werden.
+3. Automationen, Skripte und Dashboards auf die neuen Namen umstellen (Suchen und Ersetzen von `doralab_notify` durch `enhanced_notify`):
+
+   | Alt | Neu |
+   |---|---|
+   | `doralab_notify.send` / `mark_read` / `delete` / `set_type` | `enhanced_notify.send` / … |
+   | `custom:doralab-notify-bell` / `custom:doralab-notify-admin` | `custom:enhanced-notify-bell` / `custom:enhanced-notify-admin` |
+   | Ereignis `doralab_notify_created` | `enhanced_notify_created` |
+
+Bis Version 2.0 funktionieren die **alten Dienstnamen und Kartennamen weiter**, damit nichts sofort bricht. Jeder Aufruf eines alten Dienstes schreibt eine Warnung ins Protokoll und legt unter Einstellungen → System → Reparaturen einen Hinweis an. Das Ereignis wird nur noch unter dem neuen Namen ausgelöst.
 
 ## Einrichtung
 
 1. **Glocke**: Die Glocke der HA-Seitenleiste öffnet die Liste und zeigt den Zähler, sobald die Integration eingerichtet ist. Zusätzlich gibt es eine Karte für beliebige Dashboards:
 
    ```yaml
-   type: custom:doralab-notify-bell
+   type: custom:enhanced-notify-bell
    ```
 
-2. **Admin-Dashboard** für die Push-Einstellungen: ein Dashboard (nur für Administratoren) mit der Karte `custom:doralab-notify-admin`, siehe [`examples/dashboard/admin-view.yaml`](examples/dashboard/admin-view.yaml). Dort wählst du je Meldungstyp die Personen und den Modus *Immer* oder *Nur unterwegs*, kannst eine Testmeldung senden oder auf den Standard zurücksetzen.
-3. **Meldungen auslösen**: aus deinen Automationen mit `doralab_notify.send`. Fertige Vorlagen liegen in [`examples/automations/`](examples/automations).
+2. **Admin-Dashboard** für die Push-Einstellungen: ein Dashboard (nur für Administratoren) mit der Karte `custom:enhanced-notify-admin`, siehe [`examples/dashboard/admin-view.yaml`](examples/dashboard/admin-view.yaml). Dort wählst du je Meldungstyp die Personen und den Modus *Immer* oder *Nur unterwegs*, kannst eine Testmeldung senden oder auf den Standard zurücksetzen.
+3. **Meldungen auslösen**: aus deinen Automationen mit `enhanced_notify.send`. Fertige Vorlagen liegen in [`examples/automations/`](examples/automations).
 
 Optionen der Integration (Einstellungen → Geräte & Dienste → Konfigurieren): Aufbewahrung gelesener/aller Meldungen, maximale Anzahl, HA-Meldungen übernehmen und übersetzen, Geräte ohne Push (z. B. ein iPad).
 
@@ -66,7 +82,7 @@ Unter *Konfigurieren* kannst du ein **Standard-Icon für Push-Meldungen** eintra
 ## Meldung senden
 
 ```yaml
-action: doralab_notify.send
+action: enhanced_notify.send
 data:
   type: paket_zugestellt          # Typ aus dem Katalog (oder neu: wird automatisch angelegt)
   message: "Hermes: Dein Paket wurde zugestellt"
@@ -87,7 +103,7 @@ Gleicher `tag` mit geändertem Text aktualisiert die vorhandene Meldung (wird wi
 Für Ereignisse, die nicht wiederkehren sollen, z. B. neue Kalendertermine:
 
 ```yaml
-action: doralab_notify.send
+action: enhanced_notify.send
 data:
   type: kalender_neuer_termin
   message: "Do., 29.10. 08:00"
@@ -102,11 +118,11 @@ Die gesehenen Tags werden dauerhaft gespeichert (bis 5000, die ältesten fallen 
 
 | Aktion | Zweck |
 |---|---|
-| `doralab_notify.mark_read` | `ids`, `all`, `read` |
-| `doralab_notify.delete` | `ids`, `tags` (löscht alle Meldungen mit diesem Tag), `all`, `only_read` |
-| `doralab_notify.set_type` | `type`, `recipients` (Personen), `push_when` (`always`/`away`), `reset` |
+| `enhanced_notify.mark_read` | `ids`, `all`, `read` |
+| `enhanced_notify.delete` | `ids`, `tags` (löscht alle Meldungen mit diesem Tag), `all`, `only_read` |
+| `enhanced_notify.set_type` | `type`, `recipients` (Personen), `push_when` (`always`/`away`), `reset` |
 
-Beim Senden löst die Integration das Ereignis `doralab_notify_created` aus (für eigene Automationen).
+Beim Senden löst die Integration das Ereignis `enhanced_notify_created` aus (für eigene Automationen).
 
 ## Meldungstypen
 
@@ -141,26 +157,26 @@ Persistente Meldungen von Home Assistant und Integrationen werden übernommen un
 
 ## Oberfläche im Detail
 
-Das JavaScript (`custom_components/doralab_notify/frontend/doralab-notify.js`) liefert die Integration unter `/doralab_notify/doralab-notify.js` aus und lädt es automatisch in Home Assistant. Es bringt:
+Das JavaScript (`custom_components/enhanced_notify/frontend/enhanced-notify.js`) liefert die Integration unter `/enhanced_notify/enhanced-notify.js` aus und lädt es automatisch in Home Assistant. Es bringt:
 
 - Meldungsliste als Popup (Filter Alle / Ungelesen / Kategorie, löschen, „Alle gelesen“, „Gelesene löschen“, Tippen öffnet den Link)
 - Übernahme der Standard-Glocke der HA-Seitenleiste (Web und App): öffnet diese Liste und zeigt den Zähler der Integration
-- Karte `custom:doralab-notify-bell` (Glocke mit Zähler für beliebige Dashboards)
-- Karte `custom:doralab-notify-admin` (Push je Typ und Person, Testmeldung, Zurücksetzen)
+- Karte `custom:enhanced-notify-bell` (Glocke mit Zähler für beliebige Dashboards)
+- Karte `custom:enhanced-notify-admin` (Push je Typ und Person, Testmeldung, Zurücksetzen)
 - Optional: Anbindung an die eigenen Header-Elemente `doralab-kt-page` / `doralab-home-header` (nur aktiv, wenn es sie gibt; für andere Setups ohne Bedeutung)
 
-Alles läuft über die Websocket-Befehle der Integration (`doralab_notify/subscribe`, `mark_read`, `delete`, `set_type`; Letzteres nur für Admins). Die Oberfläche ist derzeit deutschsprachig.
+Alles läuft über die Websocket-Befehle der Integration (`enhanced_notify/subscribe`, `mark_read`, `delete`, `set_type`; Letzteres nur für Admins). Die Oberfläche ist derzeit deutschsprachig.
 
 ## Updates und Versionen
 
-Releases stehen unter [Releases](https://github.com/dominikramachers/ha-enhanced-notify/releases), die Änderungen im [CHANGELOG](CHANGELOG.md). Stabile Versionen erkennt HACS automatisch, Vorabversionen nur mit freigeschalteten Beta-Versionen (siehe oben). Beim Update bleiben Meldungen, Einstellungen und Optionen erhalten; nach der Installation ist ein Neustart von Home Assistant nötig.
+Releases stehen unter [Releases](https://github.com/dominikramachers/ha-enhanced-notify/releases), die Änderungen im [CHANGELOG](CHANGELOG.md). Stabile Versionen erkennt HACS automatisch, Vorabversionen nur mit freigeschalteten Beta-Versionen (siehe oben). Beim Update bleiben Meldungen, Einstellungen und Optionen erhalten; nach der Installation ist ein Neustart von Home Assistant nötig. Wer von der früheren Version *DORALAB Benachrichtigungen* kommt, folgt dem Abschnitt [Umstieg](#umstieg-von-doralab-benachrichtigungen-bis-03x).
 
 ## Fehlersuche
 
 - **Glocke fehlt nach der Installation**: Home Assistant neu starten, Browser mit Strg+F5 neu laden (in der App: Frontend-Cache leeren).
 - **Kein Push**: Im Admin-Dashboard prüfen, ob die Person beim Typ ausgewählt ist und ob unter dem Namen ein Handy angezeigt wird. Steht dort „Kein Handy gefunden“, fehlt der Person ein Geräte-Tracker der Companion App.
 - **Meldung kommt nicht erneut**: Gewollt, siehe [Meldung senden](#meldung-senden). Ein geänderter Text oder ein anderer `tag` meldet wieder.
-- Protokoll: Einstellungen → System → Protokolle, Filter `doralab_notify`.
+- Protokoll: Einstellungen → System → Protokolle, Filter `enhanced_notify`.
 
 ## Entwicklung
 
