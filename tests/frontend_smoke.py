@@ -81,6 +81,7 @@ def main():
             "Elemente nicht registriert",
         )
         check(page.evaluate("window.customCards.filter(c => c.type === 'enhanced-notify-bell').length") == 1, "Karte doppelt registriert")
+        check(page.evaluate("window.doralabNotify === window.enhancedNotify"), "Alias window.doralabNotify fehlt")
         # Sidebar-Glocke ohne Karte: hass kommt direkt vom home-assistant-Element
         page.wait_for_function("window.enhancedNotify.snap && window.enhancedNotify.snap.unread === 2", timeout=6000)
         page.wait_for_function(

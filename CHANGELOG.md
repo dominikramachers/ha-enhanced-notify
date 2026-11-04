@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.4
+
+- Korrektur: Das alte globale Objekt `window.doralabNotify` (Name bis 0.3.x) ist wieder da, als Alias auf `window.enhancedNotify`. Eigene Dashboard-Skripte, die darüber die Meldungsliste öffnen oder Glocken anmelden (`N.open()`, `N.bells`), funktionierten seit 1.0.0 nicht mehr: die Glocke zeigte nur den Sensor-Dialog statt der Liste. Der Alias entfällt wie die übrigen alten Namen in 2.0.
+
 ## 1.0.3
 
 - Korrektur: Eine Meldung mit `tag` kommt nicht mehr erneut, wenn sich nur der **Titel** ändert. Vorher verglich die Duplikat-Erkennung Titel und Text. Bei Amazon-Sammelbestellungen wechselt der Artikelname im Titel zwischen den Artikeln der Sendung; dadurch kam dieselbe „Zugestellt“-Meldung mehrfach (nach Lesen oder Löschen sogar neu, auch nach einem Neustart). Maßgeblich ist jetzt der Text je `tag`; ein geänderter Text meldet weiterhin neu. Bestehende Daten werden beim Start automatisch übernommen, nach dem Update kommt nichts doppelt.
