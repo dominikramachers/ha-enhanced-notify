@@ -51,13 +51,22 @@ def test_logo_files_are_valid_and_known():
         assert len(data) < 20000
 
 
-def test_carrier_icon_only_with_logo_file():
+@pytest.mark.parametrize("cid", sorted(ALIASES))
+def test_every_known_carrier_has_a_logo(cid):
+    assert (CARRIERS_DIR / f"{cid}.webp").is_file()
+    assert carrier_icon(f"{cid}: Sendung") == f"{CARRIERS_URL}/{cid}.webp"
+
+
+def test_carrier_icon_only_with_logo_file(tmp_path, monkeypatch):
+    """Bekannter Zusteller ohne Logo-Datei (z. B. neu in ALIASES) bekommt kein Icon."""
+    import custom_components.enhanced_notify.carriers as carriers
+
+    (tmp_path / "dhl.webp").write_bytes(b"RIFF")
+    monkeypatch.setattr(carriers, "CARRIERS_DIR", tmp_path)
     assert carrier_icon("DHL: Schuhe") == f"{CARRIERS_URL}/dhl.webp"
-    assert carrier_icon("Picnic: Einkauf") == f"{CARRIERS_URL}/picnic.webp"
-    # bekannter Zusteller, aber (noch) kein Logo
     assert carrier_id("Amazon: Toaster") == "amazon"
-    assert not (CARRIERS_DIR / "amazon.webp").exists()
     assert carrier_icon("Amazon: Toaster") is None
+    assert carrier_icon("Unbekannt: Paket") is None
 
 
 async def test_parcel_notification_gets_carrier_logo(hass: HomeAssistant):
@@ -65,10 +74,12 @@ async def test_parcel_notification_gets_carrier_logo(hass: HomeAssistant):
     await manager.async_send("paket_in_zustellung", "Heute", title="DHL: Schuhe", tag="paket:1", push=False)
     await manager.async_send("paket_in_zustellung", "Heute", title="Hermes: Buch", tag="paket:2", push=False)
     await manager.async_send("paket_in_zustellung", "Heute", title="Amazon: Toaster", tag="paket:3", push=False)
+    await manager.async_send("paket_in_zustellung", "Heute", title="Unbekannt: Teile", tag="paket:4", push=False)
     icons = {i["tag"]: i["icon"] for i in manager.items}
     assert icons["paket:1"] == f"{CARRIERS_URL}/dhl.webp"
     assert icons["paket:2"] == f"{CARRIERS_URL}/hermes.webp"
-    assert icons["paket:3"] is None
+    assert icons["paket:3"] == f"{CARRIERS_URL}/amazon.webp"
+    assert icons["paket:4"] is None
 
 
 async def test_explicit_icon_wins_over_carrier_logo(hass: HomeAssistant):
@@ -117,14 +128,14 @@ async def test_push_uses_carrier_logo(hass: HomeAssistant):
 
 async def test_push_without_logo_has_no_icon(hass: HomeAssistant):
     _, manager = await _setup(hass)
-    assert "icon_url" not in await _push_data(hass, manager, title="Amazon: Toaster")
+    assert "icon_url" not in await _push_data(hass, manager, title="Unbekannt: Toaster")
 
 
 async def test_push_logo_beats_default_icon_unless_forced(hass: HomeAssistant):
     _, manager = await _setup(hass, {"push_icon": "/local/logo.png"})
     assert (await _push_data(hass, manager, title="DHL: Schuhe"))["icon_url"] == f"{CARRIERS_URL}/dhl.webp"
-    # Pakete ohne Logo behalten das Standard-Icon
-    assert (await _push_data(hass, manager, title="Amazon: Toaster"))["icon_url"] == "/local/logo.png"
+    # Pakete ohne erkannten Zusteller behalten das Standard-Icon
+    assert (await _push_data(hass, manager, title="Unbekannt: Toaster"))["icon_url"] == "/local/logo.png"
 
 
 async def test_push_forced_default_icon_beats_logo(hass: HomeAssistant):
