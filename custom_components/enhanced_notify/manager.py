@@ -16,6 +16,7 @@ from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 from homeassistant.util import slugify
 
+from .carriers import carrier_icon
 from .catalog import CATALOG, CATEGORIES, DEFAULT_CATEGORY, DEFAULT_ICON
 from .const import (
     ACTION_READ_PREFIX,
@@ -44,6 +45,8 @@ from .recipients import person_ids, person_services, persons_with_phone, recipie
 from .translate import translate_persistent
 
 _LOGGER = logging.getLogger(__name__)
+
+PACKAGE_CATEGORY = "pakete"
 
 _UNSET: Any = object()
 
@@ -93,6 +96,17 @@ class NotificationManager:
             ):
                 self.announced_msg[item_tag] = self._fingerprint("", item["message"])
         self._retranslate_persistent()
+        self._backfill_carrier_icons()
+
+    def _backfill_carrier_icons(self) -> None:
+        """Bestehende Paket-Meldungen ohne eigenes Bild bekommen das Zusteller-Logo."""
+        for item in self.items:
+            if item.get("icon") or item.get("category") != PACKAGE_CATEGORY:
+                continue
+            icon = carrier_icon(item.get("title"))
+            if icon:
+                item["icon"] = icon
+                self._changed()
 
     def _retranslate_persistent(self) -> None:
         """Als „System“ übernommene HA-Meldungen mit den aktuellen Regeln neu einordnen."""
@@ -167,19 +181,22 @@ class NotificationManager:
     def excluded_services(self) -> list[str]:
         return list(self._opt(CONF_EXCLUDED_SERVICES, []))
 
-    def _push_icon(self, info: dict[str, Any]) -> str | None:
+    def _push_icon(self, item: dict[str, Any], info: dict[str, Any]) -> str | None:
         """Bild für das Absender-Icon im Push (``icon_url``), sonst ``None``.
 
-        Das Standard-Icon aus den Optionen gilt für alle Typen. Hat ein Typ ein
-        eigenes Bild (Pfad oder Webadresse, kein MDI-Name), gewinnt dieses, es sei
-        denn, das Standard-Icon ist erzwungen.
+        Das Standard-Icon aus den Optionen gilt für alle Meldungen. Hat die Meldung
+        ein eigenes Bild (z. B. das Zusteller-Logo bei Paketen) oder ihr Typ eines
+        (Pfad oder Webadresse, kein MDI-Name), gewinnt dieses, in dieser
+        Reihenfolge, es sei denn, das Standard-Icon ist erzwungen.
         """
         default = str(self._opt(CONF_PUSH_ICON, "") or "").strip()
-        own = str(info.get("icon") or "")
-        own_image = own if own.startswith(("/", "http://", "https://")) else ""
         if default and self._opt(CONF_PUSH_ICON_FORCE, False):
             return default
-        return own_image or default or None
+        for candidate in (item.get("icon"), info.get("icon")):
+            own = str(candidate or "")
+            if own.startswith(("/", "http://", "https://")):
+                return own
+        return default or None
 
     # ------------------------------------------------------------------ Typen
 
@@ -351,6 +368,8 @@ class NotificationManager:
                     self._changed()
         info = self.types_view()[type_id]
         final_title = title or info["name"]
+        # Paket-Meldungen: Logo des Zustellers aus dem Titel („DHL: …“), falls nicht vorgegeben
+        auto_icon = carrier_icon(final_title) if info["category"] == PACKAGE_CATEGORY else None
         now = dt_util.utcnow().isoformat()
 
         fingerprint: str | None = None
@@ -378,7 +397,7 @@ class NotificationManager:
                 read_at=None,
                 count=existing.get("count", 1) + 1,
                 link=link or existing.get("link"),
-                icon=icon or existing.get("icon"),
+                icon=icon or auto_icon or existing.get("icon"),
             )
             if data:
                 existing["data"] = {**existing.get("data", {}), **data}
@@ -394,7 +413,7 @@ class NotificationManager:
                 "message": message,
                 "tag": tag,
                 "link": link,
-                "icon": icon,
+                "icon": icon or auto_icon,
                 "created": now,
                 "updated": now,
                 "read": False,
@@ -468,7 +487,7 @@ class NotificationManager:
         if item.get("link"):
             data["url"] = item["link"]
             data["clickAction"] = item["link"]
-        icon_url = self._push_icon(info)
+        icon_url = self._push_icon(item, info)
         if icon_url:
             data["icon_url"] = icon_url
         if (priority or info["priority"]) == PRIORITY_HIGH:
