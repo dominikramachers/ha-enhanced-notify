@@ -1,5 +1,10 @@
 # Changelog
 
+## Unveröffentlicht
+
+- **Zusteller-Logos bei Paket-Meldungen:** Meldungen der Kategorie *Pakete* mit Titel im Format `Zusteller: Sendung` (z. B. `DHL: Schuhe`) bekommen automatisch das Logo des Zustellers, in der Meldungsliste und als Bild im Push (`icon_url`). Enthalten sind DHL, DPD, Hermes und Picnic; Amazon, UPS, GLS und FedEx werden erkannt, haben aber noch kein Logo und behalten das Standard-Icon. Die Logos liegen im Ordner `carriers/` der Integration und werden unter `/enhanced_notify/carriers/` ausgeliefert; ein weiterer Zusteller braucht nur eine Datei `<zusteller>.webp`. Ein ausdrücklich gesetztes `icon` hat Vorrang. Bereits vorhandene Paket-Meldungen bekommen das Logo beim nächsten Start. Die Paket-Automation muss dafür nicht geändert werden.
+- Push: Ein eigenes Bild der Meldung (`icon`) wird jetzt ebenfalls als `icon_url` gesendet (Reihenfolge: erzwungenes Standard-Icon, Bild der Meldung, Bild des Typs, Standard-Icon). Vorher galt nur das Bild des Typs.
+
 ## 1.0.4
 
 - Korrektur: Das alte globale Objekt `window.doralabNotify` (Name bis 0.3.x) ist wieder da, als Alias auf `window.enhancedNotify`. Eigene Dashboard-Skripte, die darüber die Meldungsliste öffnen oder Glocken anmelden (`N.open()`, `N.bells`), funktionierten seit 1.0.0 nicht mehr: die Glocke zeigte nur den Sensor-Dialog statt der Liste. Der Alias entfällt wie die übrigen alten Namen in 2.0.

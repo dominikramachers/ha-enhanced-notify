@@ -28,6 +28,7 @@ from homeassistant.helpers.event import async_track_time_change
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.loader import async_get_integration
 
+from .carriers import CARRIERS_DIR, CARRIERS_URL
 from .const import (
     CONF_DISMISS_IMPORTED,
     CONF_IMPORT_PERSISTENT,
@@ -136,7 +137,11 @@ async def _async_register_frontend(hass: HomeAssistant) -> None:
         from homeassistant.components.http import StaticPathConfig
 
         await hass.http.async_register_static_paths(
-            [StaticPathConfig(FRONTEND_URL, str(FRONTEND_FILE), cache_headers=False)]
+            [
+                StaticPathConfig(FRONTEND_URL, str(FRONTEND_FILE), cache_headers=False),
+                # Zusteller-Logos; ohne Anmeldung abrufbar, damit das Push-Bild sie laden kann
+                StaticPathConfig(CARRIERS_URL, str(CARRIERS_DIR), cache_headers=True),
+            ]
         )
         version = (await async_get_integration(hass, DOMAIN)).version
         add_extra_js_url(hass, f"{FRONTEND_URL}?v={version}")
